@@ -59,10 +59,6 @@
       margin-top: 25px;
     }
 
-    .paso:first-of-type {
-      margin-top: 10px;
-    }
-
     h2 {
       margin: 0 0 15px;
       font-size: 21px;
@@ -116,13 +112,14 @@
       display: none;
     }
 
-    input[type="date"] {
+    input {
       width: 100%;
       padding: 15px;
       border-radius: 14px;
       border: 1px solid #ddd6df;
       font-size: 16px;
       background: #faf8fb;
+      margin-bottom: 12px;
     }
 
     .horarios {
@@ -136,7 +133,6 @@
       background: #faf8fb;
       padding: 13px 5px;
       border-radius: 13px;
-      font-size: 15px;
       cursor: pointer;
       text-align: center;
     }
@@ -153,6 +149,38 @@
       padding: 16px;
       border-radius: 15px;
       line-height: 1.7;
+    }
+
+    .boton-confirmar {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 15px;
+      background: #514458;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .boton-confirmar:disabled {
+      opacity: .6;
+    }
+
+    .mensaje {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 15px;
+      line-height: 1.5;
+    }
+
+    .exito {
+      background: #edf7ef;
+    }
+
+    .error {
+      background: #fdeeee;
     }
 
     .check {
@@ -178,77 +206,72 @@
     </div>
 
     <div class="paso">
-
       <h2>1. Selecciona un servicio</h2>
-
       <div id="servicios" class="opciones">
-        <div class="estado">
-          Cargando servicios...
-        </div>
+        <div class="estado">Cargando servicios...</div>
       </div>
-
     </div>
 
-    <div
-      id="seccionProfesionales"
-      class="paso oculto"
-    >
-
+    <div id="seccionProfesionales" class="paso oculto">
       <h2>2. Selecciona un profesional</h2>
-
-      <div
-        id="profesionales"
-        class="opciones"
-      ></div>
-
+      <div id="profesionales" class="opciones"></div>
     </div>
 
-    <div
-      id="seccionFecha"
-      class="paso oculto"
-    >
-
+    <div id="seccionFecha" class="paso oculto">
       <h2>3. Selecciona una fecha</h2>
+      <input type="date" id="fecha">
+    </div>
+
+    <div id="seccionHorarios" class="paso oculto">
+      <h2>4. Selecciona un horario</h2>
+      <div id="horarios" class="horarios"></div>
+    </div>
+
+    <div id="seccionDatos" class="paso oculto">
+
+      <h2>5. Tus datos</h2>
 
       <input
-        type="date"
-        id="fecha"
+        type="text"
+        id="nombreCliente"
+        placeholder="Nombre completo"
       >
 
+      <input
+        type="tel"
+        id="telefonoCliente"
+        placeholder="Teléfono"
+      >
+
+      <input
+        type="email"
+        id="emailCliente"
+        placeholder="Correo electrónico (opcional)"
+      >
+
+      <button
+        id="confirmar"
+        class="boton-confirmar"
+      >
+        Confirmar cita
+      </button>
+
     </div>
 
-    <div
-      id="seccionHorarios"
-      class="paso oculto"
-    >
-
-      <h2>4. Selecciona un horario</h2>
-
-      <div
-        id="horarios"
-        class="horarios"
-      ></div>
-
-    </div>
-
-    <div
-      id="resumen"
-      class="resumen oculto"
-    >
+    <div id="resumen" class="resumen oculto">
 
       <div class="check">
         ✅ Selección actual
       </div>
 
       <div id="resumenServicio"></div>
-
       <div id="resumenProfesional"></div>
-
       <div id="resumenFecha"></div>
-
       <div id="resumenHora"></div>
 
     </div>
+
+    <div id="mensaje" class="mensaje oculto"></div>
 
   </div>
 
@@ -257,10 +280,10 @@
 <script>
 
 const SUPABASE_URL =
-"https://wbdijpsiovssuhxzzovi.supabase.co";
+  "https://wbdijpsiovssuhxzzovi.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
+  "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
@@ -268,15 +291,10 @@ const db = window.supabase.createClient(
 );
 
 let negocioActual = null;
-
 let servicioSeleccionado = null;
-
 let profesionalSeleccionado = null;
-
 let fechaSeleccionada = null;
-
 let horaSeleccionada = null;
-
 
 
 async function cargarAgenda() {
@@ -287,7 +305,6 @@ async function cargarAgenda() {
   const contenedorServicios =
     document.getElementById("servicios");
 
-
   const {
     data: negocio,
     error: errorNegocio
@@ -297,7 +314,6 @@ async function cargarAgenda() {
     .eq("nombre", "Negocio de Prueba")
     .maybeSingle();
 
-
   if (errorNegocio || !negocio) {
 
     nombreNegocio.textContent =
@@ -306,12 +322,10 @@ async function cargarAgenda() {
     return;
   }
 
-
   negocioActual = negocio;
 
   nombreNegocio.textContent =
     negocio.nombre;
-
 
   const {
     data: servicios,
@@ -322,7 +336,6 @@ async function cargarAgenda() {
     .eq("negocio_id", negocio.id)
     .order("nombre");
 
-
   if (errorServicios) {
 
     contenedorServicios.innerHTML =
@@ -331,9 +344,7 @@ async function cargarAgenda() {
     return;
   }
 
-
   contenedorServicios.innerHTML = "";
-
 
   servicios.forEach(servicio => {
 
@@ -343,68 +354,43 @@ async function cargarAgenda() {
     boton.className = "opcion";
 
     boton.innerHTML = `
-
       <span class="titulo-opcion">
         ${servicio.nombre}
       </span>
 
       <span class="detalle-opcion">
-
         ${servicio.descripcion || ""}
-
         <br>
-
         ⏱ ${servicio.duracion_minutos} minutos
-
       </span>
 
       ${
         servicio.precio !== null
-        ?
+        ? `
+          <div class="precio">
+            $${Number(servicio.precio).toFixed(2)}
+          </div>
         `
-        <div class="precio">
-          $${Number(servicio.precio).toFixed(2)}
-        </div>
-        `
-        :
-        ""
+        : ""
       }
-
     `;
-
 
     boton.addEventListener(
       "click",
       async () => {
 
         document
-          .querySelectorAll(
-            "#servicios .opcion"
-          )
+          .querySelectorAll("#servicios .opcion")
           .forEach(item =>
-            item.classList.remove(
-              "seleccionado"
-            )
+            item.classList.remove("seleccionado")
           );
 
+        boton.classList.add("seleccionado");
 
-        boton.classList.add(
-          "seleccionado"
-        );
-
-
-        servicioSeleccionado =
-          servicio;
-
-        profesionalSeleccionado =
-          null;
-
-        fechaSeleccionada =
-          null;
-
-        horaSeleccionada =
-          null;
-
+        servicioSeleccionado = servicio;
+        profesionalSeleccionado = null;
+        fechaSeleccionada = null;
+        horaSeleccionada = null;
 
         document
           .getElementById("seccionFecha")
@@ -415,64 +401,44 @@ async function cargarAgenda() {
           .classList.add("oculto");
 
         document
+          .getElementById("seccionDatos")
+          .classList.add("oculto");
+
+        document
           .getElementById("resumen")
           .classList.add("oculto");
 
+        ocultarMensaje();
 
-        await cargarProfesionales(
-          servicio.id
-        );
-
+        await cargarProfesionales(servicio.id);
       }
     );
 
-
-    contenedorServicios
-      .appendChild(boton);
-
+    contenedorServicios.appendChild(boton);
   });
-
 }
 
 
-
-async function cargarProfesionales(
-  servicioId
-) {
+async function cargarProfesionales(servicioId) {
 
   const seccion =
-    document.getElementById(
-      "seccionProfesionales"
-    );
+    document.getElementById("seccionProfesionales");
 
   const contenedor =
-    document.getElementById(
-      "profesionales"
-    );
+    document.getElementById("profesionales");
 
-
-  seccion.classList.remove(
-    "oculto"
-  );
-
+  seccion.classList.remove("oculto");
 
   contenedor.innerHTML =
     '<div class="estado">Cargando profesionales...</div>';
-
 
   const {
     data: relaciones,
     error: errorRelaciones
   } = await db
-    .from(
-      "profesional_servicios_publicos"
-    )
+    .from("profesional_servicios_publicos")
     .select("profesional_id")
-    .eq(
-      "servicio_id",
-      servicioId
-    );
-
+    .eq("servicio_id", servicioId);
 
   if (errorRelaciones) {
 
@@ -482,12 +448,8 @@ async function cargarProfesionales(
     return;
   }
 
-
   const ids =
-    relaciones.map(
-      item => item.profesional_id
-    );
-
+    relaciones.map(item => item.profesional_id);
 
   if (ids.length === 0) {
 
@@ -497,25 +459,15 @@ async function cargarProfesionales(
     return;
   }
 
-
   const {
     data: profesionales,
     error
   } = await db
-    .from(
-      "profesionales_publicos"
-    )
+    .from("profesionales_publicos")
     .select("*")
-    .eq(
-      "negocio_id",
-      negocioActual.id
-    )
-    .in(
-      "id",
-      ids
-    )
+    .eq("negocio_id", negocioActual.id)
+    .in("id", ids)
     .order("nombre");
-
 
   if (error) {
 
@@ -525,135 +477,82 @@ async function cargarProfesionales(
     return;
   }
 
-
   contenedor.innerHTML = "";
 
+  profesionales.forEach(profesional => {
 
-  profesionales.forEach(
-    profesional => {
+    const boton =
+      document.createElement("button");
 
-      const boton =
-        document.createElement(
-          "button"
-        );
+    boton.className = "opcion";
 
+    boton.innerHTML = `
+      <span class="titulo-opcion">
+        ${profesional.nombre}
+      </span>
 
-      boton.className =
-        "opcion";
+      <span class="detalle-opcion">
+        ${profesional.especialidad || ""}
+      </span>
+    `;
 
+    boton.addEventListener(
+      "click",
+      () => {
 
-      boton.innerHTML = `
-
-        <span class="titulo-opcion">
-          ${profesional.nombre}
-        </span>
-
-        <span class="detalle-opcion">
-          ${profesional.especialidad || ""}
-        </span>
-
-      `;
-
-
-      boton.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              "#profesionales .opcion"
-            )
-            .forEach(
-              item =>
-                item.classList.remove(
-                  "seleccionado"
-                )
-            );
-
-
-          boton.classList.add(
-            "seleccionado"
+        document
+          .querySelectorAll("#profesionales .opcion")
+          .forEach(item =>
+            item.classList.remove("seleccionado")
           );
 
+        boton.classList.add("seleccionado");
 
-          profesionalSeleccionado =
-            profesional;
+        profesionalSeleccionado =
+          profesional;
 
+        fechaSeleccionada = null;
+        horaSeleccionada = null;
 
-          fechaSeleccionada =
-            null;
+        document.getElementById("fecha").value = "";
 
-          horaSeleccionada =
-            null;
+        document
+          .getElementById("seccionFecha")
+          .classList.remove("oculto");
 
+        document
+          .getElementById("seccionHorarios")
+          .classList.add("oculto");
 
-          const fecha =
-            document.getElementById(
-              "fecha"
-            );
+        document
+          .getElementById("seccionDatos")
+          .classList.add("oculto");
 
+        ocultarMensaje();
 
-          fecha.value = "";
+        actualizarResumen();
+      }
+    );
 
-
-          document
-            .getElementById(
-              "seccionFecha"
-            )
-            .classList.remove(
-              "oculto"
-            );
-
-
-          document
-            .getElementById(
-              "seccionHorarios"
-            )
-            .classList.add(
-              "oculto"
-            );
-
-
-          actualizarResumen();
-
-        }
-      );
-
-
-      contenedor.appendChild(
-        boton
-      );
-
-    }
-  );
-
+    contenedor.appendChild(boton);
+  });
 }
-
 
 
 const fechaInput =
   document.getElementById("fecha");
 
-
 const hoy =
   new Date();
-
 
 const hoyTexto =
   hoy.getFullYear()
   + "-"
-  + String(
-      hoy.getMonth() + 1
-    ).padStart(2, "0")
+  + String(hoy.getMonth() + 1).padStart(2, "0")
   + "-"
-  + String(
-      hoy.getDate()
-    ).padStart(2, "0");
+  + String(hoy.getDate()).padStart(2, "0");
 
-
-fechaInput.min =
-  hoyTexto;
-
+fechaInput.min = hoyTexto;
 
 
 fechaInput.addEventListener(
@@ -663,9 +562,13 @@ fechaInput.addEventListener(
     fechaSeleccionada =
       fechaInput.value;
 
-    horaSeleccionada =
-      null;
+    horaSeleccionada = null;
 
+    document
+      .getElementById("seccionDatos")
+      .classList.add("oculto");
+
+    ocultarMensaje();
 
     if (
       !fechaSeleccionada ||
@@ -675,38 +578,25 @@ fechaInput.addEventListener(
       return;
     }
 
-
     actualizarResumen();
 
-
     await cargarHorarios();
-
   }
 );
-
 
 
 async function cargarHorarios() {
 
   const seccion =
-    document.getElementById(
-      "seccionHorarios"
-    );
+    document.getElementById("seccionHorarios");
 
   const contenedor =
-    document.getElementById(
-      "horarios"
-    );
+    document.getElementById("horarios");
 
-
-  seccion.classList.remove(
-    "oculto"
-  );
-
+  seccion.classList.remove("oculto");
 
   contenedor.innerHTML =
     '<div class="estado">Buscando horarios...</div>';
-
 
   const {
     data,
@@ -714,7 +604,6 @@ async function cargarHorarios() {
   } = await db.rpc(
     "horarios_disponibles",
     {
-
       p_profesional_id:
         profesionalSeleccionado.id,
 
@@ -723,10 +612,8 @@ async function cargarHorarios() {
 
       p_fecha:
         fechaSeleccionada
-
     }
   );
-
 
   if (error) {
 
@@ -738,11 +625,7 @@ async function cargarHorarios() {
     return;
   }
 
-
-  if (
-    !data ||
-    data.length === 0
-  ) {
+  if (!data || data.length === 0) {
 
     contenedor.innerHTML =
       '<div class="estado">No hay horarios disponibles para esta fecha.</div>';
@@ -750,156 +633,275 @@ async function cargarHorarios() {
     return;
   }
 
-
   contenedor.innerHTML = "";
-
 
   data.forEach(item => {
 
     const hora =
-      item.hora
-      ||
-      item.hora_inicio
-      ||
+      item.hora ||
+      item.hora_inicio ||
       item.inicio;
 
-
-    if (!hora) {
-      return;
-    }
-
+    if (!hora) return;
 
     const horaBonita =
-      String(hora)
-        .substring(0, 5);
-
+      String(hora).substring(0, 5);
 
     const boton =
-      document.createElement(
-        "button"
-      );
+      document.createElement("button");
 
+    boton.className = "hora";
 
-    boton.className =
-      "hora";
-
-
-    boton.textContent =
-      horaBonita;
-
+    boton.textContent = horaBonita;
 
     boton.addEventListener(
       "click",
       () => {
 
         document
-          .querySelectorAll(
-            ".hora"
-          )
-          .forEach(
-            item =>
-              item.classList.remove(
-                "seleccionado"
-              )
+          .querySelectorAll(".hora")
+          .forEach(item =>
+            item.classList.remove("seleccionado")
           );
 
-
-        boton.classList.add(
-          "seleccionado"
-        );
-
+        boton.classList.add("seleccionado");
 
         horaSeleccionada =
           horaBonita;
 
+        document
+          .getElementById("seccionDatos")
+          .classList.remove("oculto");
+
+        ocultarMensaje();
 
         actualizarResumen();
-
       }
     );
 
-
-    contenedor.appendChild(
-      boton
-    );
-
+    contenedor.appendChild(boton);
   });
-
 }
-
 
 
 function actualizarResumen() {
 
   const resumen =
-    document.getElementById(
-      "resumen"
-    );
-
+    document.getElementById("resumen");
 
   if (
     !servicioSeleccionado ||
     !profesionalSeleccionado
   ) {
 
-    resumen.classList.add(
-      "oculto"
+    resumen.classList.add("oculto");
+    return;
+  }
+
+  document
+    .getElementById("resumenServicio")
+    .textContent =
+      "Servicio: " +
+      servicioSeleccionado.nombre;
+
+  document
+    .getElementById("resumenProfesional")
+    .textContent =
+      "Profesional: " +
+      profesionalSeleccionado.nombre;
+
+  document
+    .getElementById("resumenFecha")
+    .textContent =
+      fechaSeleccionada
+      ? "Fecha: " + fechaSeleccionada
+      : "";
+
+  document
+    .getElementById("resumenHora")
+    .textContent =
+      horaSeleccionada
+      ? "Hora: " + horaSeleccionada
+      : "";
+
+  resumen.classList.remove("oculto");
+}
+
+
+document
+  .getElementById("confirmar")
+  .addEventListener(
+    "click",
+    confirmarCita
+  );
+
+
+async function confirmarCita() {
+
+  const nombre =
+    document
+      .getElementById("nombreCliente")
+      .value
+      .trim();
+
+  const telefono =
+    document
+      .getElementById("telefonoCliente")
+      .value
+      .trim();
+
+  const email =
+    document
+      .getElementById("emailCliente")
+      .value
+      .trim();
+
+  if (!nombre) {
+    mostrarError(
+      "Escribe el nombre del paciente."
+    );
+    return;
+  }
+
+  if (!telefono) {
+    mostrarError(
+      "Escribe un número de teléfono."
+    );
+    return;
+  }
+
+  if (
+    !negocioActual ||
+    !profesionalSeleccionado ||
+    !servicioSeleccionado ||
+    !fechaSeleccionada ||
+    !horaSeleccionada
+  ) {
+
+    mostrarError(
+      "Falta seleccionar algún dato de la cita."
     );
 
     return;
   }
 
+  const boton =
+    document.getElementById("confirmar");
 
-  document
-    .getElementById(
-      "resumenServicio"
-    )
-    .textContent =
-      "Servicio: "
-      + servicioSeleccionado.nombre;
+  boton.disabled = true;
 
+  boton.textContent =
+    "Guardando cita...";
 
-  document
-    .getElementById(
-      "resumenProfesional"
-    )
-    .textContent =
-      "Profesional: "
-      + profesionalSeleccionado.nombre;
+  ocultarMensaje();
 
+  const {
+    data,
+    error
+  } = await db.rpc(
+    "crear_cita_publica",
+    {
+      p_negocio_id:
+        negocioActual.id,
 
-  document
-    .getElementById(
-      "resumenFecha"
-    )
-    .textContent =
-      fechaSeleccionada
-      ?
-      "Fecha: "
-      + fechaSeleccionada
-      :
-      "";
+      p_profesional_id:
+        profesionalSeleccionado.id,
 
+      p_servicio_id:
+        servicioSeleccionado.id,
 
-  document
-    .getElementById(
-      "resumenHora"
-    )
-    .textContent =
-      horaSeleccionada
-      ?
-      "Hora: "
-      + horaSeleccionada
-      :
-      "";
+      p_nombre:
+        nombre,
 
+      p_telefono:
+        telefono,
 
-  resumen.classList.remove(
-    "oculto"
+      p_email:
+        email || null,
+
+      p_fecha:
+        fechaSeleccionada,
+
+      p_hora_inicio:
+        horaSeleccionada
+    }
   );
 
+  boton.disabled = false;
+
+  boton.textContent =
+    "Confirmar cita";
+
+  if (error) {
+
+    console.error(error);
+
+    mostrarError(
+      "No fue posible guardar la cita. Intenta nuevamente."
+    );
+
+    return;
+  }
+
+  mostrarExito(
+    "✅ ¡Cita confirmada! Tu cita fue registrada correctamente."
+  );
+
+  document
+    .getElementById("seccionDatos")
+    .classList.add("oculto");
+
+  document
+    .getElementById("nombreCliente")
+    .value = "";
+
+  document
+    .getElementById("telefonoCliente")
+    .value = "";
+
+  document
+    .getElementById("emailCliente")
+    .value = "";
+
+  horaSeleccionada = null;
+
+  actualizarResumen();
+
+  await cargarHorarios();
 }
 
+
+function mostrarExito(texto) {
+
+  const mensaje =
+    document.getElementById("mensaje");
+
+  mensaje.textContent = texto;
+
+  mensaje.className =
+    "mensaje exito";
+}
+
+
+function mostrarError(texto) {
+
+  const mensaje =
+    document.getElementById("mensaje");
+
+  mensaje.textContent = texto;
+
+  mensaje.className =
+    "mensaje error";
+}
+
+
+function ocultarMensaje() {
+
+  document
+    .getElementById("mensaje")
+    .className =
+      "mensaje oculto";
+}
 
 
 cargarAgenda();
