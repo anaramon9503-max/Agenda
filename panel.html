@@ -89,10 +89,6 @@
       background: #fdeeee;
     }
 
-    .exito {
-      background: #edf7ef;
-    }
-
     .barra {
       margin-bottom: 20px;
       padding-bottom: 17px;
@@ -394,6 +390,7 @@ async function cargarCitas() {
     .from("citas")
     .select(`
       id,
+      profesional_id,
       paciente_nombre,
       paciente_telefono,
       paciente_email,
@@ -402,9 +399,6 @@ async function cargarCitas() {
       hora_fin,
       estado,
       servicios (
-        nombre
-      ),
-      profesionales (
         nombre
       )
     `)
@@ -434,6 +428,58 @@ async function cargarCitas() {
       '<div class="sin-citas">No tienes próximas citas.</div>';
 
     return;
+  }
+
+
+  /*
+    Sacamos todos los IDs de profesionales
+    que aparecen en las citas.
+  */
+
+  const idsProfesionales =
+    [
+      ...new Set(
+        citas
+          .map(cita => cita.profesional_id)
+          .filter(Boolean)
+      )
+    ];
+
+
+  let mapaProfesionales = {};
+
+
+  if (idsProfesionales.length > 0) {
+
+    const {
+      data: profesionales,
+      error: errorProfesionales
+    } = await db
+      .from("profesionales_publicos")
+      .select("id, nombre")
+      .in("id", idsProfesionales);
+
+
+    if (errorProfesionales) {
+
+      console.error(
+        errorProfesionales
+      );
+
+    } else {
+
+      profesionales.forEach(
+        profesional => {
+
+          mapaProfesionales[
+            profesional.id
+          ] = profesional.nombre;
+
+        }
+      );
+
+    }
+
   }
 
 
@@ -474,9 +520,9 @@ async function cargarCitas() {
 
 
     const profesional =
-      cita.profesionales
-      ? cita.profesionales.nombre
-      : "Sin profesional";
+      mapaProfesionales[
+        cita.profesional_id
+      ] || "Sin profesional";
 
 
     tarjeta.innerHTML = `
