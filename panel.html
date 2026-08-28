@@ -1,1 +1,346 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AR Agenda | Panel</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f7f5f8;
+      color: #29252e;
+      padding: 25px 16px;
+    }
+
+    .contenedor {
+      max-width: 480px;
+      margin: auto;
+    }
+
+    .logo {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    .logo h1 {
+      margin-bottom: 5px;
+    }
+
+    .logo p {
+      color: #777;
+      margin-top: 0;
+    }
+
+    .tarjeta {
+      background: white;
+      padding: 25px;
+      border-radius: 22px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.07);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 13px;
+      border: 1px solid #ddd6df;
+      border-radius: 14px;
+      font-size: 16px;
+      background: #faf8fb;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: #514458;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .mensaje {
+      margin-top: 15px;
+      padding: 13px;
+      border-radius: 12px;
+    }
+
+    .error {
+      background: #fdeeee;
+    }
+
+    .exito {
+      background: #edf7ef;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    .sesion {
+      line-height: 1.7;
+    }
+
+    .cerrar {
+      margin-top: 20px;
+      background: #eee9f0;
+      color: #514458;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="contenedor">
+
+    <div class="logo">
+      <h1>AR Agenda</h1>
+      <p>Panel de administración</p>
+    </div>
+
+    <div class="tarjeta">
+
+      <div id="login">
+
+        <h2>Iniciar sesión</h2>
+
+        <input
+          type="email"
+          id="email"
+          placeholder="Correo electrónico"
+        >
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Contraseña"
+        >
+
+        <button id="btnLogin">
+          Entrar
+        </button>
+
+      </div>
+
+      <div id="panel" class="oculto">
+
+        <h2>Bienvenida 💜</h2>
+
+        <div class="sesion">
+          Ya ingresaste correctamente a AR Agenda.
+          <br><br>
+          <strong>Cuenta:</strong>
+          <span id="correoUsuario"></span>
+        </div>
+
+        <button
+          id="btnCerrar"
+          class="cerrar"
+        >
+          Cerrar sesión
+        </button>
+
+      </div>
+
+      <div
+        id="mensaje"
+        class="mensaje oculto"
+      ></div>
+
+    </div>
+
+  </div>
+
+<script>
+
+  const SUPABASE_URL =
+    "https://wbdijpsiovssuhxzzovi.supabase.co";
+
+  const SUPABASE_KEY =
+    "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
+
+  const db =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  const login =
+    document.getElementById("login");
+
+  const panel =
+    document.getElementById("panel");
+
+  const mensaje =
+    document.getElementById("mensaje");
+
+
+  document
+    .getElementById("btnLogin")
+    .addEventListener(
+      "click",
+      iniciarSesion
+    );
+
+
+  document
+    .getElementById("btnCerrar")
+    .addEventListener(
+      "click",
+      cerrarSesion
+    );
+
+
+  async function iniciarSesion() {
+
+    const email =
+      document
+        .getElementById("email")
+        .value
+        .trim();
+
+    const password =
+      document
+        .getElementById("password")
+        .value;
+
+    ocultarMensaje();
+
+    if (!email || !password) {
+
+      mostrarError(
+        "Escribe tu correo y contraseña."
+      );
+
+      return;
+    }
+
+
+    const {
+      data,
+      error
+    } = await db.auth.signInWithPassword({
+      email,
+      password
+    });
+
+
+    if (error) {
+
+      console.error(error);
+
+      mostrarError(
+        "Correo o contraseña incorrectos."
+      );
+
+      return;
+    }
+
+
+    mostrarPanel(
+      data.user
+    );
+  }
+
+
+  async function cerrarSesion() {
+
+    await db.auth.signOut();
+
+    panel.classList.add("oculto");
+
+    login.classList.remove("oculto");
+
+    document
+      .getElementById("password")
+      .value = "";
+
+    ocultarMensaje();
+  }
+
+
+  function mostrarPanel(usuario) {
+
+    login.classList.add("oculto");
+
+    panel.classList.remove("oculto");
+
+    document
+      .getElementById("correoUsuario")
+      .textContent =
+        usuario.email;
+
+    mostrarExito(
+      "Sesión iniciada correctamente."
+    );
+  }
+
+
+  async function revisarSesion() {
+
+    const {
+      data
+    } = await db.auth.getSession();
+
+    if (
+      data.session &&
+      data.session.user
+    ) {
+
+      mostrarPanel(
+        data.session.user
+      );
+    }
+  }
+
+
+  function mostrarError(texto) {
+
+    mensaje.textContent =
+      texto;
+
+    mensaje.className =
+      "mensaje error";
+  }
+
+
+  function mostrarExito(texto) {
+
+    mensaje.textContent =
+      texto;
+
+    mensaje.className =
+      "mensaje exito";
+  }
+
+
+  function ocultarMensaje() {
+
+    mensaje.className =
+      "mensaje oculto";
+  }
+
+
+  revisarSesion();
+
+</script>
+
+</body>
+</html>
