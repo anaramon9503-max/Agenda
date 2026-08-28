@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -20,31 +19,32 @@
       font-family: Arial, sans-serif;
       background: #f7f5f8;
       color: #29252e;
-      padding: 25px 16px;
+      padding: 24px 15px;
     }
 
     .contenedor {
-      max-width: 480px;
+      max-width: 620px;
       margin: auto;
     }
 
-    .logo {
+    .encabezado {
       text-align: center;
-      margin: 30px 0;
+      margin-bottom: 24px;
     }
 
-    .logo h1 {
-      margin-bottom: 5px;
+    .encabezado h1 {
+      margin: 0 0 6px;
+      font-size: 29px;
     }
 
-    .logo p {
+    .encabezado p {
+      margin: 0;
       color: #777;
-      margin-top: 0;
     }
 
     .tarjeta {
       background: white;
-      padding: 25px;
+      padding: 23px;
       border-radius: 22px;
       box-shadow: 0 10px 35px rgba(0,0,0,.07);
     }
@@ -65,7 +65,7 @@
 
     button {
       width: 100%;
-      padding: 16px;
+      padding: 15px;
       border: none;
       border-radius: 14px;
       background: #514458;
@@ -75,10 +75,14 @@
       cursor: pointer;
     }
 
+    .oculto {
+      display: none;
+    }
+
     .mensaje {
       margin-top: 15px;
-      padding: 13px;
-      border-radius: 12px;
+      padding: 14px;
+      border-radius: 13px;
     }
 
     .error {
@@ -89,63 +93,118 @@
       background: #edf7ef;
     }
 
-    .oculto {
-      display: none;
+    .barra {
+      margin-bottom: 20px;
+      padding-bottom: 17px;
+      border-bottom: 1px solid #eee9f0;
     }
 
-    .sesion {
-      line-height: 1.7;
+    .correo {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 12px;
     }
 
     .cerrar {
-      margin-top: 20px;
       background: #eee9f0;
       color: #514458;
+    }
+
+    .titulo-citas {
+      margin: 25px 0 14px;
+    }
+
+    .citas {
+      display: grid;
+      gap: 13px;
+    }
+
+    .cita {
+      background: #faf8fb;
+      border: 1px solid #ebe5ed;
+      border-radius: 17px;
+      padding: 17px;
+    }
+
+    .fecha {
+      font-weight: bold;
+      font-size: 17px;
+      margin-bottom: 7px;
+    }
+
+    .hora {
+      color: #514458;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .dato {
+      margin: 5px 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .estado {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eee9f0;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .cargando,
+    .sin-citas {
+      text-align: center;
+      padding: 25px 10px;
+      color: #777;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="contenedor">
+<div class="contenedor">
 
-    <div class="logo">
-      <h1>AR Agenda</h1>
-      <p>Panel de administración</p>
+  <div class="encabezado">
+    <h1>AR Agenda</h1>
+    <p>Panel de administración</p>
+  </div>
+
+  <div class="tarjeta">
+
+    <div id="login">
+
+      <h2>Iniciar sesión</h2>
+
+      <input
+        type="email"
+        id="email"
+        placeholder="Correo electrónico"
+      >
+
+      <input
+        type="password"
+        id="password"
+        placeholder="Contraseña"
+      >
+
+      <button id="btnLogin">
+        Entrar
+      </button>
+
     </div>
 
-    <div class="tarjeta">
 
-      <div id="login">
+    <div id="panel" class="oculto">
 
-        <h2>Iniciar sesión</h2>
+      <div class="barra">
 
-        <input
-          type="email"
-          id="email"
-          placeholder="Correo electrónico"
-        >
+        <h2>Mis citas 💜</h2>
 
-        <input
-          type="password"
-          id="password"
-          placeholder="Contraseña"
-        >
-
-        <button id="btnLogin">
-          Entrar
-        </button>
-
-      </div>
-
-      <div id="panel" class="oculto">
-
-        <h2>Bienvenida 💜</h2>
-
-        <div class="sesion">
-          Ya ingresaste correctamente a AR Agenda.
-          <br><br>
-          <strong>Cuenta:</strong>
+        <div class="correo">
+          Sesión:
           <span id="correoUsuario"></span>
         </div>
 
@@ -158,187 +217,379 @@
 
       </div>
 
-      <div
-        id="mensaje"
-        class="mensaje oculto"
-      ></div>
+      <h2 class="titulo-citas">
+        Próximas citas
+      </h2>
+
+      <div id="listaCitas" class="citas">
+
+        <div class="cargando">
+          Cargando citas...
+        </div>
+
+      </div>
 
     </div>
 
+
+    <div
+      id="mensaje"
+      class="mensaje oculto"
+    ></div>
+
   </div>
+
+</div>
+
 
 <script>
 
-  const SUPABASE_URL =
-    "https://wbdijpsiovssuhxzzovi.supabase.co";
+const SUPABASE_URL =
+  "https://wbdijpsiovssuhxzzovi.supabase.co";
 
-  const SUPABASE_KEY =
-    "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
+const SUPABASE_KEY =
+  "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
 
-  const db =
-    window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
+const db =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+const login =
+  document.getElementById("login");
+
+const panel =
+  document.getElementById("panel");
+
+const mensaje =
+  document.getElementById("mensaje");
+
+const listaCitas =
+  document.getElementById("listaCitas");
+
+
+document
+  .getElementById("btnLogin")
+  .addEventListener(
+    "click",
+    iniciarSesion
+  );
+
+
+document
+  .getElementById("btnCerrar")
+  .addEventListener(
+    "click",
+    cerrarSesion
+  );
+
+
+async function iniciarSesion() {
+
+  const email =
+    document
+      .getElementById("email")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("password")
+      .value;
+
+  ocultarMensaje();
+
+  if (!email || !password) {
+
+    mostrarError(
+      "Escribe tu correo y contraseña."
     );
 
+    return;
+  }
 
-  const login =
-    document.getElementById("login");
 
-  const panel =
-    document.getElementById("panel");
+  const {
+    data,
+    error
+  } = await db.auth.signInWithPassword({
+    email,
+    password
+  });
 
-  const mensaje =
-    document.getElementById("mensaje");
 
+  if (error) {
+
+    mostrarError(
+      "Correo o contraseña incorrectos."
+    );
+
+    return;
+  }
+
+
+  await mostrarPanel(
+    data.user
+  );
+}
+
+
+async function cerrarSesion() {
+
+  await db.auth.signOut();
+
+  panel.classList.add("oculto");
+
+  login.classList.remove("oculto");
 
   document
-    .getElementById("btnLogin")
-    .addEventListener(
-      "click",
-      iniciarSesion
-    );
+    .getElementById("password")
+    .value = "";
 
+  ocultarMensaje();
+}
+
+
+async function mostrarPanel(usuario) {
+
+  login.classList.add("oculto");
+
+  panel.classList.remove("oculto");
 
   document
-    .getElementById("btnCerrar")
-    .addEventListener(
-      "click",
-      cerrarSesion
-    );
+    .getElementById("correoUsuario")
+    .textContent =
+      usuario.email;
+
+  await cargarCitas();
+}
 
 
-  async function iniciarSesion() {
+async function cargarCitas() {
 
-    const email =
-      document
-        .getElementById("email")
-        .value
-        .trim();
-
-    const password =
-      document
-        .getElementById("password")
-        .value;
-
-    ocultarMensaje();
-
-    if (!email || !password) {
-
-      mostrarError(
-        "Escribe tu correo y contraseña."
-      );
-
-      return;
-    }
+  listaCitas.innerHTML =
+    '<div class="cargando">Cargando citas...</div>';
 
 
-    const {
-      data,
-      error
-    } = await db.auth.signInWithPassword({
-      email,
-      password
+  const hoy = new Date();
+
+  const hoyTexto =
+    hoy.getFullYear()
+    + "-"
+    + String(
+        hoy.getMonth() + 1
+      ).padStart(2, "0")
+    + "-"
+    + String(
+        hoy.getDate()
+      ).padStart(2, "0");
+
+
+  const {
+    data: citas,
+    error
+  } = await db
+    .from("citas")
+    .select(`
+      id,
+      paciente_nombre,
+      paciente_telefono,
+      paciente_email,
+      fecha,
+      hora_inicio,
+      hora_fin,
+      estado,
+      servicios (
+        nombre
+      ),
+      profesionales (
+        nombre
+      )
+    `)
+    .gte("fecha", hoyTexto)
+    .order("fecha", {
+      ascending: true
+    })
+    .order("hora_inicio", {
+      ascending: true
     });
 
 
-    if (error) {
+  if (error) {
 
-      console.error(error);
+    console.error(error);
 
-      mostrarError(
-        "Correo o contraseña incorrectos."
+    listaCitas.innerHTML =
+      '<div class="sin-citas">No fue posible cargar las citas.</div>';
+
+    return;
+  }
+
+
+  if (!citas || citas.length === 0) {
+
+    listaCitas.innerHTML =
+      '<div class="sin-citas">No tienes próximas citas.</div>';
+
+    return;
+  }
+
+
+  listaCitas.innerHTML = "";
+
+
+  citas.forEach(cita => {
+
+    const tarjeta =
+      document.createElement("div");
+
+    tarjeta.className =
+      "cita";
+
+
+    const fechaBonita =
+      formatearFecha(
+        cita.fecha
       );
 
-      return;
-    }
+
+    const horaInicio =
+      String(
+        cita.hora_inicio
+      ).substring(0, 5);
 
 
-    mostrarPanel(
-      data.user
+    const horaFin =
+      String(
+        cita.hora_fin
+      ).substring(0, 5);
+
+
+    const servicio =
+      cita.servicios
+      ? cita.servicios.nombre
+      : "Sin servicio";
+
+
+    const profesional =
+      cita.profesionales
+      ? cita.profesionales.nombre
+      : "Sin profesional";
+
+
+    tarjeta.innerHTML = `
+
+      <div class="fecha">
+        📅 ${fechaBonita}
+      </div>
+
+      <div class="hora">
+        🕐 ${horaInicio} - ${horaFin}
+      </div>
+
+      <div class="dato">
+        <strong>Paciente:</strong>
+        ${cita.paciente_nombre || ""}
+      </div>
+
+      <div class="dato">
+        <strong>Teléfono:</strong>
+        ${cita.paciente_telefono || ""}
+      </div>
+
+      ${
+        cita.paciente_email
+        ?
+        `
+        <div class="dato">
+          <strong>Correo:</strong>
+          ${cita.paciente_email}
+        </div>
+        `
+        :
+        ""
+      }
+
+      <div class="dato">
+        <strong>Servicio:</strong>
+        ${servicio}
+      </div>
+
+      <div class="dato">
+        <strong>Profesional:</strong>
+        ${profesional}
+      </div>
+
+      <div class="estado">
+        ${cita.estado}
+      </div>
+
+    `;
+
+
+    listaCitas.appendChild(
+      tarjeta
     );
-  }
+
+  });
+
+}
 
 
-  async function cerrarSesion() {
+function formatearFecha(fecha) {
 
-    await db.auth.signOut();
+  const partes =
+    fecha.split("-");
 
-    panel.classList.add("oculto");
-
-    login.classList.remove("oculto");
-
-    document
-      .getElementById("password")
-      .value = "";
-
-    ocultarMensaje();
-  }
-
-
-  function mostrarPanel(usuario) {
-
-    login.classList.add("oculto");
-
-    panel.classList.remove("oculto");
-
-    document
-      .getElementById("correoUsuario")
-      .textContent =
-        usuario.email;
-
-    mostrarExito(
-      "Sesión iniciada correctamente."
-    );
-  }
+  return (
+    partes[2]
+    + "/"
+    + partes[1]
+    + "/"
+    + partes[0]
+  );
+}
 
 
-  async function revisarSesion() {
+async function revisarSesion() {
 
-    const {
-      data
-    } = await db.auth.getSession();
+  const {
+    data
+  } = await db.auth.getSession();
 
-    if (
-      data.session &&
+
+  if (
+    data.session &&
+    data.session.user
+  ) {
+
+    await mostrarPanel(
       data.session.user
-    ) {
-
-      mostrarPanel(
-        data.session.user
-      );
-    }
+    );
   }
+}
 
 
-  function mostrarError(texto) {
+function mostrarError(texto) {
 
-    mensaje.textContent =
-      texto;
+  mensaje.textContent =
+    texto;
 
-    mensaje.className =
-      "mensaje error";
-  }
-
-
-  function mostrarExito(texto) {
-
-    mensaje.textContent =
-      texto;
-
-    mensaje.className =
-      "mensaje exito";
-  }
+  mensaje.className =
+    "mensaje error";
+}
 
 
-  function ocultarMensaje() {
+function ocultarMensaje() {
 
-    mensaje.className =
-      "mensaje oculto";
-  }
+  mensaje.className =
+    "mensaje oculto";
+}
 
 
-  revisarSesion();
+revisarSesion();
 
 </script>
 
