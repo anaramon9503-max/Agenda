@@ -1,57 +1,471 @@
--- ==========================================
--- AR AGENDA - HORARIOS DE PRUEBA
--- LUNES A VIERNES 10:00 - 18:00
--- ==========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
--- PROFESIONAL 1
-insert into public.horarios (
-  profesional_id,
-  dia_semana,
-  hora_inicio,
-  hora_fin,
-  activo
-)
-select
-  p.id,
-  d.dia,
-  '10:00',
-  '18:00',
-  true
-from public.profesionales p
-cross join (
-  values (1), (2), (3), (4), (5)
-) as d(dia)
-where p.nombre = 'Profesional 1';
+  <title>AR Agenda</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
--- PROFESIONAL 2
-insert into public.horarios (
-  profesional_id,
-  dia_semana,
-  hora_inicio,
-  hora_fin,
-  activo
-)
-select
-  p.id,
-  d.dia,
-  '10:00',
-  '18:00',
-  true
-from public.profesionales p
-cross join (
-  values (1), (2), (3), (4), (5)
-) as d(dia)
-where p.nombre = 'Profesional 2';
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f5f8;
+      color: #29252e;
+      min-height: 100vh;
+      padding: 25px 16px;
+    }
 
--- COMPROBAR
-select
-  p.nombre as profesional,
-  h.dia_semana,
-  h.hora_inicio,
-  h.hora_fin
-from public.horarios h
-join public.profesionales p
-  on p.id = h.profesional_id
-order by p.nombre, h.dia_semana;
+    .contenedor {
+      max-width: 520px;
+      margin: auto;
+    }
+
+    .encabezado {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .encabezado h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    .encabezado p {
+      margin: 0;
+      color: #716b75;
+    }
+
+    .tarjeta {
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.07);
+    }
+
+    .negocio {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 8px;
+    }
+
+    .paso {
+      margin-top: 25px;
+    }
+
+    .paso:first-of-type {
+      margin-top: 10px;
+    }
+
+    h2 {
+      margin: 0 0 15px;
+      font-size: 21px;
+    }
+
+    .opciones {
+      display: grid;
+      gap: 12px;
+    }
+
+    .opcion {
+      width: 100%;
+      text-align: left;
+      background: #faf8fb;
+      border: 1px solid #e8e3ea;
+      border-radius: 16px;
+      padding: 17px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .opcion:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,.06);
+    }
+
+    .opcion.seleccionado {
+      border: 2px solid #514458;
+      background: #f2edf4;
+    }
+
+    .titulo-opcion {
+      font-size: 17px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .detalle-opcion {
+      font-size: 14px;
+      color: #726b76;
+      line-height: 1.5;
+    }
+
+    .precio {
+      margin-top: 8px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .estado {
+      color: #777;
+      padding: 10px 0;
+    }
+
+    .resumen {
+      margin-top: 25px;
+      background: #f2edf4;
+      padding: 16px;
+      border-radius: 15px;
+      line-height: 1.6;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    .check {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="contenedor">
+
+    <div class="encabezado">
+      <h1>AR Agenda</h1>
+      <p>Agenda tu cita de manera fácil y rápida</p>
+    </div>
+
+    <div class="tarjeta">
+
+      <div class="negocio" id="nombreNegocio">
+        Cargando negocio...
+      </div>
+
+      <div class="paso">
+        <h2>1. Selecciona un servicio</h2>
+
+        <div id="servicios" class="opciones">
+          <div class="estado">
+            Cargando servicios...
+          </div>
+        </div>
+      </div>
+
+      <div class="paso oculto" id="seccionProfesionales">
+
+        <h2>2. Selecciona un profesional</h2>
+
+        <div id="profesionales" class="opciones"></div>
+
+      </div>
+
+      <div class="resumen oculto" id="resumen">
+
+        <div class="check">
+          ✅ Selección actual
+        </div>
+
+        <div id="resumenServicio"></div>
+        <div id="resumenProfesional"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    const SUPABASE_URL =
+      "https://wbdijpsiovssuhxzzovi.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    let negocioActual = null;
+    let servicioSeleccionado = null;
+    let profesionalSeleccionado = null;
+
+    async function cargarAgenda() {
+
+      const nombreNegocio =
+        document.getElementById("nombreNegocio");
+
+      const contenedorServicios =
+        document.getElementById("servicios");
+
+      const {
+        data: negocio,
+        error: errorNegocio
+      } = await db
+        .from("negocios_publicos")
+        .select("id, nombre")
+        .eq("nombre", "Negocio de Prueba")
+        .maybeSingle();
+
+      if (errorNegocio || !negocio) {
+
+        nombreNegocio.textContent =
+          "No se encontró el negocio";
+
+        contenedorServicios.innerHTML =
+          '<div class="estado">No fue posible cargar la agenda.</div>';
+
+        console.error(errorNegocio);
+
+        return;
+      }
+
+      negocioActual = negocio;
+
+      nombreNegocio.textContent = negocio.nombre;
+
+      const {
+        data: servicios,
+        error: errorServicios
+      } = await db
+        .from("servicios_publicos")
+        .select("*")
+        .eq("negocio_id", negocio.id)
+        .order("nombre");
+
+      if (errorServicios) {
+
+        contenedorServicios.innerHTML =
+          '<div class="estado">Error al cargar servicios.</div>';
+
+        console.error(errorServicios);
+
+        return;
+      }
+
+      contenedorServicios.innerHTML = "";
+
+      servicios.forEach(servicio => {
+
+        const boton =
+          document.createElement("button");
+
+        boton.className = "opcion";
+
+        boton.innerHTML = `
+          <span class="titulo-opcion">
+            ${servicio.nombre}
+          </span>
+
+          <span class="detalle-opcion">
+            ${servicio.descripcion || ""}
+            <br>
+            ⏱ ${servicio.duracion_minutos} minutos
+          </span>
+
+          ${
+            servicio.precio !== null
+            ? `
+              <div class="precio">
+                $${Number(servicio.precio).toFixed(2)}
+              </div>
+            `
+            : ""
+          }
+        `;
+
+        boton.addEventListener("click", async () => {
+
+          document
+            .querySelectorAll("#servicios .opcion")
+            .forEach(item =>
+              item.classList.remove("seleccionado")
+            );
+
+          boton.classList.add("seleccionado");
+
+          servicioSeleccionado = servicio;
+          profesionalSeleccionado = null;
+
+          document
+            .getElementById("resumen")
+            .classList.add("oculto");
+
+          await cargarProfesionales(
+            servicio.id
+          );
+
+        });
+
+        contenedorServicios.appendChild(boton);
+
+      });
+
+    }
+
+    async function cargarProfesionales(servicioId) {
+
+      const seccion =
+        document.getElementById(
+          "seccionProfesionales"
+        );
+
+      const contenedor =
+        document.getElementById(
+          "profesionales"
+        );
+
+      seccion.classList.remove("oculto");
+
+      contenedor.innerHTML =
+        '<div class="estado">Cargando profesionales...</div>';
+
+      const {
+        data: relaciones,
+        error: errorRelaciones
+      } = await db
+        .from("profesional_servicios_publicos")
+        .select("profesional_id")
+        .eq("servicio_id", servicioId);
+
+      if (errorRelaciones) {
+
+        contenedor.innerHTML =
+          '<div class="estado">No fue posible cargar los profesionales.</div>';
+
+        console.error(errorRelaciones);
+
+        return;
+      }
+
+      const ids =
+        relaciones.map(
+          item => item.profesional_id
+        );
+
+      if (ids.length === 0) {
+
+        contenedor.innerHTML =
+          '<div class="estado">No hay profesionales disponibles para este servicio.</div>';
+
+        return;
+      }
+
+      const {
+        data: profesionales,
+        error: errorProfesionales
+      } = await db
+        .from("profesionales_publicos")
+        .select("*")
+        .eq(
+          "negocio_id",
+          negocioActual.id
+        )
+        .in("id", ids)
+        .order("nombre");
+
+      if (errorProfesionales) {
+
+        contenedor.innerHTML =
+          '<div class="estado">Error al cargar profesionales.</div>';
+
+        console.error(errorProfesionales);
+
+        return;
+      }
+
+      contenedor.innerHTML = "";
+
+      profesionales.forEach(profesional => {
+
+        const boton =
+          document.createElement("button");
+
+        boton.className = "opcion";
+
+        boton.innerHTML = `
+          <span class="titulo-opcion">
+            ${profesional.nombre}
+          </span>
+
+          <span class="detalle-opcion">
+            ${profesional.especialidad || ""}
+          </span>
+        `;
+
+        boton.addEventListener("click", () => {
+
+          document
+            .querySelectorAll(
+              "#profesionales .opcion"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "seleccionado"
+              )
+            );
+
+          boton.classList.add(
+            "seleccionado"
+          );
+
+          profesionalSeleccionado =
+            profesional;
+
+          mostrarResumen();
+
+        });
+
+        contenedor.appendChild(boton);
+
+      });
+
+    }
+
+    function mostrarResumen() {
+
+      if (
+        !servicioSeleccionado ||
+        !profesionalSeleccionado
+      ) {
+        return;
+      }
+
+      document
+        .getElementById("resumenServicio")
+        .textContent =
+          "Servicio: " +
+          servicioSeleccionado.nombre;
+
+      document
+        .getElementById(
+          "resumenProfesional"
+        )
+        .textContent =
+          "Profesional: " +
+          profesionalSeleccionado.nombre;
+
+      document
+        .getElementById("resumen")
+        .classList.remove("oculto");
+
+    }
+
+    cargarAgenda();
+
+  </script>
+
+</body>
+</html>
