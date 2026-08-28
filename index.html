@@ -5,15 +5,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>AR Agenda</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f5f8;
+      margin: 0;
+      padding: 30px 20px;
+      color: #27232b;
+    }
+
+    .contenedor {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.08);
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .estado {
+      padding: 15px;
+      border-radius: 12px;
+      background: #f1edf4;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-  <h1>AR Agenda</h1>
+  <div class="contenedor">
 
-  <p>Agenda tu cita de manera fácil y rápida.</p>
+    <h1>AR Agenda</h1>
+    <p>Agenda tu cita de manera fácil y rápida.</p>
 
-  <button>Agendar cita</button>
+    <div class="estado" id="estado">
+      Conectando con la agenda...
+    </div>
+
+  </div>
+
+  <script>
+
+    const SUPABASE_URL =
+      "https://wbdijpsiovssuhxzzovi.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    async function probarConexion() {
+
+      const estado = document.getElementById("estado");
+
+      const { data, error } = await db
+        .from("negocios_publicos")
+        .select("*");
+
+      if (error) {
+        console.error(error);
+
+        estado.innerHTML =
+          "❌ No se pudo conectar con la agenda.";
+
+        return;
+      }
+
+      estado.innerHTML =
+        "✅ AR Agenda está conectada correctamente.";
+
+      console.log("Negocios:", data);
+    }
+
+    probarConexion();
+
+  </script>
 
 </body>
 </html>
