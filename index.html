@@ -9,32 +9,116 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
       background: #f7f5f8;
-      margin: 0;
-      padding: 30px 20px;
-      color: #27232b;
+      color: #29252e;
+      min-height: 100vh;
+      padding: 30px 18px;
     }
 
     .contenedor {
-      max-width: 500px;
+      max-width: 520px;
       margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.08);
     }
 
-    h1 {
+    .encabezado {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .encabezado h1 {
+      margin-bottom: 8px;
+      font-size: 30px;
+    }
+
+    .encabezado p {
+      margin: 0;
+      color: #716b75;
+    }
+
+    .tarjeta {
+      background: white;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.07);
+    }
+
+    .negocio {
+      font-size: 14px;
+      color: #777;
       margin-bottom: 5px;
     }
 
-    .estado {
-      padding: 15px;
-      border-radius: 12px;
-      background: #f1edf4;
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .servicios {
+      display: grid;
+      gap: 12px;
       margin-top: 20px;
+    }
+
+    .servicio {
+      width: 100%;
+      text-align: left;
+      background: #faf8fb;
+      border: 1px solid #e8e3ea;
+      border-radius: 16px;
+      padding: 17px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .servicio:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,.07);
+    }
+
+    .servicio.seleccionado {
+      border: 2px solid #4d4053;
+      background: #f2edf4;
+    }
+
+    .nombre-servicio {
+      font-size: 17px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .datos-servicio {
+      font-size: 14px;
+      color: #726b76;
+    }
+
+    .precio {
+      margin-top: 8px;
+      font-weight: bold;
+      font-size: 16px;
+      color: #332d36;
+    }
+
+    .estado {
+      text-align: center;
+      color: #777;
+      padding: 20px 0;
+    }
+
+    .seleccion {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 14px;
+      background: #f2edf4;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -43,17 +127,33 @@
 
   <div class="contenedor">
 
-    <h1>AR Agenda</h1>
-    <p>Agenda tu cita de manera fácil y rápida.</p>
+    <div class="encabezado">
+      <h1>AR Agenda</h1>
+      <p>Agenda tu cita de manera fácil y rápida</p>
+    </div>
 
-    <div class="estado" id="estado">
-      Conectando con la agenda...
+    <div class="tarjeta">
+
+      <div class="negocio" id="nombreNegocio">
+        Cargando negocio...
+      </div>
+
+      <h2>Selecciona un servicio</h2>
+
+      <div id="servicios" class="servicios">
+        <div class="estado">
+          Cargando servicios...
+        </div>
+      </div>
+
+      <div class="seleccion" id="seleccion"></div>
+
     </div>
 
   </div>
 
-  <script>
 
+  <script>
     const SUPABASE_URL =
       "https://wbdijpsiovssuhxzzovi.supabase.co";
 
@@ -65,31 +165,134 @@
       SUPABASE_KEY
     );
 
-    async function probarConexion() {
+    let servicioSeleccionado = null;
 
-      const estado = document.getElementById("estado");
 
-      const { data, error } = await db
-        .from("negocios_publicos")
-        .select("*");
+    async function cargarAgenda() {
 
-      if (error) {
-        console.error(error);
+      const contenedorServicios =
+        document.getElementById("servicios");
 
-        estado.innerHTML =
-          "❌ No se pudo conectar con la agenda.";
+      const nombreNegocio =
+        document.getElementById("nombreNegocio");
+
+
+      // Buscar nuestro negocio de prueba
+      const { data: negocio, error: errorNegocio } =
+        await db
+          .from("negocios_publicos")
+          .select("id, nombre")
+          .eq("nombre", "Negocio de Prueba")
+          .maybeSingle();
+
+
+      if (errorNegocio || !negocio) {
+
+        nombreNegocio.textContent =
+          "No se encontró el negocio";
+
+        contenedorServicios.innerHTML =
+          '<div class="estado">No fue posible cargar la agenda.</div>';
+
+        console.error(errorNegocio);
 
         return;
       }
 
-      estado.innerHTML =
-        "✅ AR Agenda está conectada correctamente.";
 
-      console.log("Negocios:", data);
+      nombreNegocio.textContent = negocio.nombre;
+
+
+      // Obtener servicios del negocio
+      const { data: servicios, error: errorServicios } =
+        await db
+          .from("servicios_publicos")
+          .select("*")
+          .eq("negocio_id", negocio.id)
+          .order("nombre");
+
+
+      if (errorServicios) {
+
+        contenedorServicios.innerHTML =
+          '<div class="estado">Error al cargar los servicios.</div>';
+
+        console.error(errorServicios);
+
+        return;
+      }
+
+
+      if (!servicios || servicios.length === 0) {
+
+        contenedorServicios.innerHTML =
+          '<div class="estado">No hay servicios disponibles.</div>';
+
+        return;
+      }
+
+
+      contenedorServicios.innerHTML = "";
+
+
+      servicios.forEach(servicio => {
+
+        const boton = document.createElement("button");
+
+        boton.className = "servicio";
+
+        boton.innerHTML = `
+          <span class="nombre-servicio">
+            ${servicio.nombre}
+          </span>
+
+          <span class="datos-servicio">
+            ${servicio.descripcion || ""}
+            <br>
+            ⏱ ${servicio.duracion_minutos} minutos
+          </span>
+
+          ${
+            servicio.precio !== null
+              ? `<div class="precio">$${Number(servicio.precio).toFixed(2)}</div>`
+              : ""
+          }
+        `;
+
+
+        boton.addEventListener("click", () => {
+
+          document
+            .querySelectorAll(".servicio")
+            .forEach(item =>
+              item.classList.remove("seleccionado")
+            );
+
+
+          boton.classList.add("seleccionado");
+
+          servicioSeleccionado = servicio;
+
+
+          const seleccion =
+            document.getElementById("seleccion");
+
+          seleccion.style.display = "block";
+
+          seleccion.innerHTML =
+            `✅ Elegiste <strong>${servicio.nombre}</strong>`;
+
+        });
+
+
+        contenedorServicios.appendChild(boton);
+
+      });
+
     }
 
-    probarConexion();
 
+    cargarAgenda();
   </script>
 
 </body>
