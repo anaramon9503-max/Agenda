@@ -4,17 +4,19 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
   "sb_publishable_T-fiB_MwofciQDOd7KWVOQ_LBVpq9xB";
 
-const db =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
-
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 let negocioActualId = null;
 let profesionalEditandoId = null;
 let profesionalServiciosId = null;
 
+
+/* =========================
+   ELEMENTOS DE LA PÁGINA
+========================= */
 
 const nombreNegocio =
   document.getElementById("nombreNegocio");
@@ -53,22 +55,20 @@ const btnCerrarServiciosProfesional =
   document.getElementById("btnCerrarServiciosProfesional");
 
 
+/* =========================
+   BOTONES
+========================= */
+
 document
   .getElementById("btnVolver")
-  .addEventListener(
-    "click",
-    () => {
-      window.location.href = "panel.html";
-    }
-  );
+  .addEventListener("click", () => {
+    window.location.href = "panel.html";
+  });
 
 
 document
   .getElementById("btnCerrar")
-  .addEventListener(
-    "click",
-    cerrarSesion
-  );
+  .addEventListener("click", cerrarSesion);
 
 
 formularioProfesional.addEventListener(
@@ -95,12 +95,14 @@ btnCerrarServiciosProfesional.addEventListener(
 );
 
 
+/* =========================
+   REVISAR SESIÓN
+========================= */
+
 async function revisarSesion() {
 
-  const {
-    data,
-    error
-  } = await db.auth.getSession();
+  const { data, error } =
+    await db.auth.getSession();
 
 
   if (
@@ -139,6 +141,10 @@ async function revisarSesion() {
 }
 
 
+/* =========================
+   CARGAR NEGOCIO
+========================= */
+
 async function cargarNegocioUsuario(
   usuarioId
 ) {
@@ -152,17 +158,9 @@ async function cargarNegocioUsuario(
     error
   } = await db
     .from("miembros_negocio")
-    .select(
-      "negocio_id, activo"
-    )
-    .eq(
-      "usuario_id",
-      usuarioId
-    )
-    .eq(
-      "activo",
-      true
-    )
+    .select("negocio_id, activo")
+    .eq("usuario_id", usuarioId)
+    .eq("activo", true)
     .limit(1);
 
 
@@ -207,10 +205,7 @@ async function cargarNegocioUsuario(
   } = await db
     .from("negocios_publicos")
     .select("id, nombre")
-    .eq(
-      "id",
-      negocioActualId
-    )
+    .eq("id", negocioActualId)
     .limit(1);
 
 
@@ -237,6 +232,10 @@ async function cargarNegocioUsuario(
 }
 
 
+/* =========================
+   CARGAR PROFESIONALES
+========================= */
+
 async function cargarProfesionales() {
 
   if (!negocioActualId) {
@@ -259,16 +258,10 @@ async function cargarProfesionales() {
       especialidad,
       activo
     `)
-    .eq(
-      "negocio_id",
-      negocioActualId
-    )
-    .order(
-      "nombre",
-      {
-        ascending: true
-      }
-    );
+    .eq("negocio_id", negocioActualId)
+    .order("nombre", {
+      ascending: true
+    });
 
 
   if (error) {
@@ -301,9 +294,7 @@ async function cargarProfesionales() {
     profesional => {
 
       const tarjeta =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
 
       tarjeta.className =
@@ -341,16 +332,14 @@ async function cargarProfesionales() {
 
         ${
           profesional.especialidad
-            ?
+            ? `
+              <div class="servicio-descripcion">
+                ${escapar(
+                  profesional.especialidad
+                )}
+              </div>
             `
-            <div class="servicio-descripcion">
-              ${escapar(
-                profesional.especialidad
-              )}
-            </div>
-            `
-            :
-            ""
+            : ""
         }
 
 
@@ -390,7 +379,10 @@ async function cargarProfesionales() {
         .querySelector(".btn-editar")
         .addEventListener(
           "click",
-          () => editarProfesional(profesional)
+          () =>
+            editarProfesional(
+              profesional
+            )
         );
 
 
@@ -398,7 +390,10 @@ async function cargarProfesionales() {
         .querySelector(".btn-servicios")
         .addEventListener(
           "click",
-          () => abrirServiciosProfesional(profesional)
+          () =>
+            abrirServiciosProfesional(
+              profesional
+            )
         );
 
 
@@ -406,7 +401,10 @@ async function cargarProfesionales() {
         .querySelector(".btn-activar")
         .addEventListener(
           "click",
-          () => cambiarEstadoProfesional(profesional)
+          () =>
+            cambiarEstadoProfesional(
+              profesional
+            )
         );
 
 
@@ -419,11 +417,16 @@ async function cargarProfesionales() {
 }
 
 
+/* =========================
+   EDITAR PROFESIONAL
+========================= */
+
 function editarProfesional(
   profesional
 ) {
 
   ocultarMensaje();
+
 
   profesionalEditandoId =
     profesional.id;
@@ -442,4 +445,608 @@ function editarProfesional(
   document
     .getElementById("profesionalEspecialidad")
     .value =
-      profesional.es
+      profesional.especialidad || "";
+
+
+  btnCancelarEdicion
+    .classList
+    .remove("oculto");
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+/* =========================
+   LIMPIAR FORMULARIO
+========================= */
+
+function limpiarFormulario() {
+
+  profesionalEditandoId = null;
+
+  formularioProfesional.reset();
+
+
+  tituloFormularioProfesional.textContent =
+    "Agregar profesional";
+
+
+  btnCancelarEdicion
+    .classList
+    .add("oculto");
+}
+
+
+/* =========================
+   GUARDAR PROFESIONAL
+========================= */
+
+async function guardarProfesional(
+  evento
+) {
+
+  evento.preventDefault();
+
+  ocultarMensaje();
+
+
+  if (!negocioActualId) {
+
+    mostrarError(
+      "No se encontró el negocio."
+    );
+
+    return;
+  }
+
+
+  const nombre =
+    document
+      .getElementById(
+        "profesionalNombre"
+      )
+      .value
+      .trim();
+
+
+  const especialidad =
+    document
+      .getElementById(
+        "profesionalEspecialidad"
+      )
+      .value
+      .trim();
+
+
+  if (!nombre) {
+
+    mostrarError(
+      "Escribe el nombre del profesional."
+    );
+
+    return;
+  }
+
+
+  const datos = {
+    nombre,
+    especialidad:
+      especialidad || null
+  };
+
+
+  let error;
+
+
+  if (profesionalEditandoId) {
+
+    ({ error } = await db
+      .from("profesionales")
+      .update(datos)
+      .eq(
+        "id",
+        profesionalEditandoId
+      )
+      .eq(
+        "negocio_id",
+        negocioActualId
+      ));
+
+  } else {
+
+    ({ error } = await db
+      .from("profesionales")
+      .insert({
+        negocio_id:
+          negocioActualId,
+
+        ...datos,
+
+        activo: true
+      }));
+
+  }
+
+
+  if (error) {
+
+    console.error(error);
+
+    mostrarError(
+      "No fue posible guardar el profesional."
+    );
+
+    return;
+  }
+
+
+  mostrarExito(
+    profesionalEditandoId
+      ? "Profesional actualizado correctamente."
+      : "Profesional agregado correctamente."
+  );
+
+
+  limpiarFormulario();
+
+  await cargarProfesionales();
+}
+
+
+/* =========================
+   ACTIVAR / DESACTIVAR
+========================= */
+
+async function cambiarEstadoProfesional(
+  profesional
+) {
+
+  ocultarMensaje();
+
+
+  const nuevoEstado =
+    !profesional.activo;
+
+
+  const texto =
+    nuevoEstado
+      ? "activar"
+      : "desactivar";
+
+
+  const confirmar =
+    window.confirm(
+      `¿Seguro que deseas ${texto} "${profesional.nombre}"?`
+    );
+
+
+  if (!confirmar) {
+    return;
+  }
+
+
+  const { error } = await db
+    .from("profesionales")
+    .update({
+      activo: nuevoEstado
+    })
+    .eq(
+      "id",
+      profesional.id
+    )
+    .eq(
+      "negocio_id",
+      negocioActualId
+    );
+
+
+  if (error) {
+
+    console.error(error);
+
+    mostrarError(
+      "No fue posible actualizar el profesional."
+    );
+
+    return;
+  }
+
+
+  mostrarExito(
+    nuevoEstado
+      ? "Profesional activado."
+      : "Profesional desactivado."
+  );
+
+
+  await cargarProfesionales();
+}
+
+
+/* =========================
+   ABRIR SERVICIOS
+========================= */
+
+async function abrirServiciosProfesional(
+  profesional
+) {
+
+  ocultarMensaje();
+
+
+  profesionalServiciosId =
+    profesional.id;
+
+
+  nombreProfesionalServicios.textContent =
+    profesional.nombre;
+
+
+  seccionServiciosProfesional
+    .classList
+    .remove("oculto");
+
+
+  listaServiciosProfesional.innerHTML =
+    '<div class="cargando">Cargando servicios...</div>';
+
+
+  const {
+    data: servicios,
+    error: errorServicios
+  } = await db
+    .from("servicios")
+    .select(`
+      id,
+      nombre,
+      activo
+    `)
+    .eq(
+      "negocio_id",
+      negocioActualId
+    )
+    .eq(
+      "activo",
+      true
+    )
+    .order(
+      "nombre",
+      {
+        ascending: true
+      }
+    );
+
+
+  if (errorServicios) {
+
+    console.error(errorServicios);
+
+    listaServiciosProfesional.innerHTML =
+      '<div class="sin-resultados">No fue posible cargar los servicios.</div>';
+
+    return;
+  }
+
+
+  const {
+    data: asignaciones,
+    error: errorAsignaciones
+  } = await db
+    .from("profesional_servicios")
+    .select("servicio_id")
+    .eq(
+      "profesional_id",
+      profesional.id
+    );
+
+
+  if (errorAsignaciones) {
+
+    console.error(
+      errorAsignaciones
+    );
+
+    listaServiciosProfesional.innerHTML =
+      '<div class="sin-resultados">No fue posible cargar las asignaciones.</div>';
+
+    return;
+  }
+
+
+  const asignados =
+    new Set(
+      (asignaciones || []).map(
+        item => item.servicio_id
+      )
+    );
+
+
+  listaServiciosProfesional.innerHTML =
+    "";
+
+
+  if (
+    !servicios ||
+    servicios.length === 0
+  ) {
+
+    listaServiciosProfesional.innerHTML =
+      '<div class="sin-resultados">No hay servicios activos.</div>';
+
+    return;
+  }
+
+
+  servicios.forEach(
+    servicio => {
+
+      const fila =
+        document.createElement(
+          "label"
+        );
+
+
+      fila.style.display =
+        "flex";
+
+      fila.style.alignItems =
+        "center";
+
+      fila.style.gap =
+        "10px";
+
+      fila.style.padding =
+        "12px";
+
+      fila.style.marginBottom =
+        "8px";
+
+      fila.style.border =
+        "1px solid #e5dfe8";
+
+      fila.style.borderRadius =
+        "12px";
+
+
+      fila.innerHTML = `
+
+        <input
+          type="checkbox"
+          class="servicio-check"
+          value="${servicio.id}"
+          ${
+            asignados.has(
+              servicio.id
+            )
+              ? "checked"
+              : ""
+          }
+          style="
+            width:auto;
+            margin:0;
+          "
+        >
+
+        <span>
+          ${escapar(
+            servicio.nombre
+          )}
+        </span>
+
+      `;
+
+
+      listaServiciosProfesional
+        .appendChild(fila);
+
+    }
+  );
+
+
+  seccionServiciosProfesional
+    .scrollIntoView({
+      behavior: "smooth"
+    });
+}
+
+
+/* =========================
+   GUARDAR SERVICIOS
+========================= */
+
+async function guardarServiciosProfesional() {
+
+  ocultarMensaje();
+
+
+  if (!profesionalServiciosId) {
+
+    mostrarError(
+      "No se seleccionó un profesional."
+    );
+
+    return;
+  }
+
+
+  const checks =
+    Array.from(
+      document.querySelectorAll(
+        ".servicio-check"
+      )
+    );
+
+
+  const serviciosSeleccionados =
+    checks
+      .filter(
+        check => check.checked
+      )
+      .map(
+        check => check.value
+      );
+
+
+  const {
+    error: errorEliminar
+  } = await db
+    .from("profesional_servicios")
+    .delete()
+    .eq(
+      "profesional_id",
+      profesionalServiciosId
+    );
+
+
+  if (errorEliminar) {
+
+    console.error(
+      errorEliminar
+    );
+
+    mostrarError(
+      "No fue posible actualizar los servicios."
+    );
+
+    return;
+  }
+
+
+  if (
+    serviciosSeleccionados.length > 0
+  ) {
+
+    const nuevasAsignaciones =
+      serviciosSeleccionados.map(
+        servicioId => ({
+          profesional_id:
+            profesionalServiciosId,
+
+          servicio_id:
+            servicioId
+        })
+      );
+
+
+    const {
+      error: errorInsertar
+    } = await db
+      .from(
+        "profesional_servicios"
+      )
+      .insert(
+        nuevasAsignaciones
+      );
+
+
+    if (errorInsertar) {
+
+      console.error(
+        errorInsertar
+      );
+
+      mostrarError(
+        "No fue posible guardar los servicios seleccionados."
+      );
+
+      return;
+    }
+  }
+
+
+  mostrarExito(
+    "Servicios del profesional actualizados correctamente."
+  );
+
+
+  cerrarServiciosProfesional();
+}
+
+
+/* =========================
+   CERRAR SERVICIOS
+========================= */
+
+function cerrarServiciosProfesional() {
+
+  profesionalServiciosId = null;
+
+
+  seccionServiciosProfesional
+    .classList
+    .add("oculto");
+
+
+  listaServiciosProfesional.innerHTML =
+    "";
+}
+
+
+/* =========================
+   CERRAR SESIÓN
+========================= */
+
+async function cerrarSesion() {
+
+  await db.auth.signOut();
+
+  window.location.href =
+    "panel.html";
+}
+
+
+/* =========================
+   MENSAJES
+========================= */
+
+function mostrarError(texto) {
+
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje error";
+}
+
+
+function mostrarExito(texto) {
+
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje exito";
+}
+
+
+function ocultarMensaje() {
+
+  mensaje.className =
+    "mensaje oculto";
+}
+
+
+/* =========================
+   SEGURIDAD DE TEXTO
+========================= */
+
+function escapar(texto) {
+
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+/* =========================
+   INICIAR
+========================= */
+
+revisarSesion();
