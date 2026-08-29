@@ -108,6 +108,25 @@
       border-bottom: 1px solid #eee9f0;
     }
 
+    .negocio {
+      background: #f3eff5;
+      border-radius: 15px;
+      padding: 14px;
+      margin-bottom: 15px;
+    }
+
+    .negocio-label {
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 4px;
+    }
+
+    .negocio-nombre {
+      font-size: 18px;
+      font-weight: bold;
+      color: #514458;
+    }
+
     .correo {
       font-size: 14px;
       color: #777;
@@ -272,6 +291,19 @@
 
       <div class="barra">
 
+        <div class="negocio">
+          <div class="negocio-label">
+            Negocio
+          </div>
+
+          <div
+            id="nombreNegocio"
+            class="negocio-nombre"
+          >
+            Cargando...
+          </div>
+        </div>
+
         <h2>Mis citas 💜</h2>
 
         <div class="correo">
@@ -328,6 +360,10 @@ const db =
   );
 
 
+let negocioActualId = null;
+let negocioActualNombre = null;
+
+
 const login =
   document.getElementById("login");
 
@@ -339,6 +375,9 @@ const mensaje =
 
 const listaCitas =
   document.getElementById("listaCitas");
+
+const nombreNegocio =
+  document.getElementById("nombreNegocio");
 
 
 document
@@ -411,6 +450,9 @@ async function cerrarSesion() {
 
   await db.auth.signOut();
 
+  negocioActualId = null;
+  negocioActualNombre = null;
+
   panel.classList.add("oculto");
 
   login.classList.remove("oculto");
@@ -434,7 +476,126 @@ async function mostrarPanel(usuario) {
     .textContent =
       usuario.email;
 
+  nombreNegocio.textContent =
+    "Cargando...";
+
+
+  const negocioEncontrado =
+    await cargarNegocioUsuario(
+      usuario.id
+    );
+
+
+  if (!negocioEncontrado) {
+
+    listaCitas.innerHTML =
+      '<div class="sin-citas">No se encontró un negocio asociado a esta cuenta.</div>';
+
+    return;
+  }
+
+
   await cargarCitas();
+}
+
+
+async function cargarNegocioUsuario(
+  usuarioId
+) {
+
+  const {
+    data: membresias,
+    error
+  } = await db
+    .from("miembros_negocio")
+    .select(`
+      negocio_id,
+      es_admin,
+      es_profesional,
+      activo
+    `)
+    .eq(
+      "usuario_id",
+      usuarioId
+    )
+    .eq(
+      "activo",
+      true
+    )
+    .limit(1);
+
+
+  if (error) {
+
+    console.error(error);
+
+    nombreNegocio.textContent =
+      "No disponible";
+
+    mostrarError(
+      "No fue posible identificar el negocio de esta cuenta."
+    );
+
+    return false;
+  }
+
+
+  if (
+    !membresias ||
+    membresias.length === 0
+  ) {
+
+    nombreNegocio.textContent =
+      "Sin negocio";
+
+    return false;
+  }
+
+
+  negocioActualId =
+    membresias[0].negocio_id;
+
+
+  const {
+    data: negocios,
+    error: errorNegocio
+  } = await db
+    .from("negocios_publicos")
+    .select("id, nombre")
+    .eq(
+      "id",
+      negocioActualId
+    )
+    .limit(1);
+
+
+  if (
+    errorNegocio ||
+    !negocios ||
+    negocios.length === 0
+  ) {
+
+    console.error(errorNegocio);
+
+    nombreNegocio.textContent =
+      "Negocio";
+
+    negocioActualNombre =
+      "Negocio";
+
+    return true;
+  }
+
+
+  negocioActualNombre =
+    negocios[0].nombre;
+
+
+  nombreNegocio.textContent =
+    negocioActualNombre;
+
+
+  return true;
 }
 
 
@@ -444,7 +605,9 @@ async function cargarCitas() {
     '<div class="cargando">Cargando citas...</div>';
 
 
-  const hoy = new Date();
+  const hoy =
+    new Date();
+
 
   const hoyTexto =
     hoy.getFullYear()
@@ -465,6 +628,7 @@ async function cargarCitas() {
     .from("citas")
     .select(`
       id,
+      negocio_id,
       profesional_id,
       paciente_nombre,
       paciente_telefono,
@@ -477,13 +641,26 @@ async function cargarCitas() {
         nombre
       )
     `)
-    .gte("fecha", hoyTexto)
-    .order("fecha", {
-      ascending: true
-    })
-    .order("hora_inicio", {
-      ascending: true
-    });
+    .eq(
+      "negocio_id",
+      negocioActualId
+    )
+    .gte(
+      "fecha",
+      hoyTexto
+    )
+    .order(
+      "fecha",
+      {
+        ascending: true
+      }
+    )
+    .order(
+      "hora_inicio",
+      {
+        ascending: true
+      }
+    );
 
 
   if (error) {
@@ -497,7 +674,10 @@ async function cargarCitas() {
   }
 
 
-  if (!citas || citas.length === 0) {
+  if (
+    !citas ||
+    citas.length === 0
+  ) {
 
     listaCitas.innerHTML =
       '<div class="sin-citas">No tienes próximas citas.</div>';
@@ -510,7 +690,10 @@ async function cargarCitas() {
     [
       ...new Set(
         citas
-          .map(cita => cita.profesional_id)
+          .map(
+            cita =>
+              cita.profesional_id
+          )
           .filter(Boolean)
       )
     ];
@@ -519,25 +702,38 @@ async function cargarCitas() {
   let mapaProfesionales = {};
 
 
-  if (idsProfesionales.length > 0) {
+  if (
+    idsProfesionales.length > 0
+  ) {
 
     const {
       data: profesionales,
       error: errorProfesionales
     } = await db
-      .from("profesionales_publicos")
-      .select("id, nombre")
-      .in("id", idsProfesionales);
+      .from(
+        "profesionales_publicos"
+      )
+      .select(
+        "id, nombre"
+      )
+      .in(
+        "id",
+        idsProfesionales
+      );
 
 
-    if (!errorProfesionales && profesionales) {
+    if (
+      !errorProfesionales &&
+      profesionales
+    ) {
 
       profesionales.forEach(
         profesional => {
 
           mapaProfesionales[
             profesional.id
-          ] = profesional.nombre;
+          ] =
+            profesional.nombre;
 
         }
       );
@@ -553,7 +749,9 @@ async function cargarCitas() {
   citas.forEach(cita => {
 
     const tarjeta =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     tarjeta.className =
       "cita";
@@ -568,13 +766,19 @@ async function cargarCitas() {
     const horaInicio =
       String(
         cita.hora_inicio
-      ).substring(0, 5);
+      ).substring(
+        0,
+        5
+      );
 
 
     const horaFin =
       String(
         cita.hora_fin
-      ).substring(0, 5);
+      ).substring(
+        0,
+        5
+      );
 
 
     const servicio =
@@ -586,7 +790,8 @@ async function cargarCitas() {
     const profesional =
       mapaProfesionales[
         cita.profesional_id
-      ] || "Sin profesional";
+      ] ||
+      "Sin profesional";
 
 
     const estadoTexto =
@@ -607,12 +812,16 @@ async function cargarCitas() {
 
       <div class="dato">
         <strong>Paciente:</strong>
-        ${escapar(cita.paciente_nombre || "")}
+        ${escapar(
+          cita.paciente_nombre || ""
+        )}
       </div>
 
       <div class="dato">
         <strong>Teléfono:</strong>
-        ${escapar(cita.paciente_telefono || "")}
+        ${escapar(
+          cita.paciente_telefono || ""
+        )}
       </div>
 
       ${
@@ -621,7 +830,9 @@ async function cargarCitas() {
         `
         <div class="dato">
           <strong>Correo:</strong>
-          ${escapar(cita.paciente_email)}
+          ${escapar(
+            cita.paciente_email
+          )}
         </div>
         `
         :
@@ -653,7 +864,8 @@ async function cargarCitas() {
             'confirmada'
           )"
           ${
-            cita.estado === "confirmada"
+            cita.estado ===
+            "confirmada"
             ? "disabled"
             : ""
           }
@@ -668,7 +880,8 @@ async function cargarCitas() {
             'atendida'
           )"
           ${
-            cita.estado === "atendida"
+            cita.estado ===
+            "atendida"
             ? "disabled"
             : ""
           }
@@ -683,7 +896,8 @@ async function cargarCitas() {
             'cancelada'
           )"
           ${
-            cita.estado === "cancelada"
+            cita.estado ===
+            "cancelada"
             ? "disabled"
             : ""
           }
@@ -698,7 +912,8 @@ async function cargarCitas() {
             'no_asistio'
           )"
           ${
-            cita.estado === "no_asistio"
+            cita.estado ===
+            "no_asistio"
             ? "disabled"
             : ""
           }
@@ -728,7 +943,10 @@ async function cambiarEstado(
   ocultarMensaje();
 
 
-  if (nuevoEstado === "cancelada") {
+  if (
+    nuevoEstado ===
+    "cancelada"
+  ) {
 
     const confirmar =
       window.confirm(
@@ -747,11 +965,16 @@ async function cambiarEstado(
   } = await db
     .from("citas")
     .update({
-      estado: nuevoEstado
+      estado:
+        nuevoEstado
     })
     .eq(
       "id",
       citaId
+    )
+    .eq(
+      "negocio_id",
+      negocioActualId
     );
 
 
@@ -776,9 +999,12 @@ async function cambiarEstado(
 }
 
 
-function nombreEstado(estado) {
+function nombreEstado(
+  estado
+) {
 
   const nombres = {
+
     pendiente:
       "Pendiente",
 
@@ -801,7 +1027,9 @@ function nombreEstado(estado) {
 }
 
 
-function formatearFecha(fecha) {
+function formatearFecha(
+  fecha
+) {
 
   const partes =
     fecha.split("-");
@@ -816,14 +1044,31 @@ function formatearFecha(fecha) {
 }
 
 
-function escapar(texto) {
+function escapar(
+  texto
+) {
 
   return String(texto)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
 
@@ -831,7 +1076,8 @@ async function revisarSesion() {
 
   const {
     data
-  } = await db.auth.getSession();
+  } =
+    await db.auth.getSession();
 
 
   if (
@@ -842,11 +1088,15 @@ async function revisarSesion() {
     await mostrarPanel(
       data.session.user
     );
+
   }
+
 }
 
 
-function mostrarError(texto) {
+function mostrarError(
+  texto
+) {
 
   mensaje.textContent =
     texto;
@@ -856,7 +1106,9 @@ function mostrarError(texto) {
 }
 
 
-function mostrarExito(texto) {
+function mostrarExito(
+  texto
+) {
 
   mensaje.textContent =
     texto;
