@@ -53,7 +53,8 @@
       margin-top: 0;
     }
 
-    input {
+    input,
+    textarea {
       width: 100%;
       padding: 15px;
       margin-bottom: 13px;
@@ -61,6 +62,12 @@
       border-radius: 14px;
       font-size: 16px;
       background: #faf8fb;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
     }
 
     button {
@@ -83,7 +90,7 @@
     }
 
     .oculto {
-      display: none;
+      display: none !important;
     }
 
     .mensaje {
@@ -138,8 +145,27 @@
       color: #514458;
     }
 
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin: 20px 0 24px;
+    }
+
+    .tab {
+      padding: 13px;
+      background: #f0edf2;
+      color: #625a66;
+      font-size: 14px;
+    }
+
+    .tab.activa {
+      background: #514458;
+      color: white;
+    }
+
     .titulo-citas {
-      margin: 25px 0 14px;
+      margin: 8px 0 14px;
     }
 
     .citas {
@@ -250,6 +276,129 @@
       padding: 25px 10px;
       color: #777;
     }
+
+    .form-servicio {
+      background: #f8f5f9;
+      border: 1px solid #ebe5ed;
+      border-radius: 18px;
+      padding: 17px;
+      margin-bottom: 22px;
+    }
+
+    .form-servicio h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+
+    .fila-doble {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-guardar {
+      width: 100%;
+      padding: 14px;
+      background: #514458;
+      color: white;
+      font-size: 15px;
+    }
+
+    .btn-cancelar-edicion {
+      width: 100%;
+      padding: 12px;
+      margin-top: 9px;
+      background: #eae6ec;
+      color: #514458;
+    }
+
+    .lista-servicios {
+      display: grid;
+      gap: 14px;
+    }
+
+    .servicio-card {
+      border: 1px solid #ebe5ed;
+      border-radius: 17px;
+      padding: 16px;
+      background: #faf8fb;
+    }
+
+    .servicio-cabecera {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .servicio-nombre {
+      font-weight: bold;
+      font-size: 17px;
+      margin-bottom: 7px;
+    }
+
+    .servicio-precio {
+      font-weight: bold;
+      color: #514458;
+      white-space: nowrap;
+    }
+
+    .servicio-descripcion {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #555;
+    }
+
+    .servicio-meta {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #777;
+    }
+
+    .servicio-estado {
+      display: inline-block;
+      padding: 5px 9px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+
+    .servicio-estado.activo {
+      background: #e7f5ec;
+      color: #27633a;
+    }
+
+    .servicio-estado.inactivo {
+      background: #eeeeee;
+      color: #666;
+    }
+
+    .servicio-acciones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .servicio-acciones button {
+      padding: 11px;
+    }
+
+    .btn-editar {
+      background: #ece7ef;
+      color: #514458;
+    }
+
+    .btn-activar {
+      background: #f3edf5;
+      color: #514458;
+    }
+
+    @media (max-width: 420px) {
+      .fila-doble {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -292,6 +441,7 @@
       <div class="barra">
 
         <div class="negocio">
+
           <div class="negocio-label">
             Negocio
           </div>
@@ -302,9 +452,8 @@
           >
             Cargando...
           </div>
-        </div>
 
-        <h2>Mis citas 💜</h2>
+        </div>
 
         <div class="correo">
           Sesión:
@@ -320,14 +469,122 @@
 
       </div>
 
-      <h2 class="titulo-citas">
-        Próximas citas
-      </h2>
 
-      <div id="listaCitas" class="citas">
+      <div class="tabs">
 
-        <div class="cargando">
-          Cargando citas...
+        <button
+          id="btnTabCitas"
+          class="tab activa"
+        >
+          📅 Citas
+        </button>
+
+        <button
+          id="btnTabServicios"
+          class="tab"
+        >
+          🛍️ Servicios
+        </button>
+
+      </div>
+
+
+      <div id="seccionCitas">
+
+        <h2 class="titulo-citas">
+          Próximas citas 💜
+        </h2>
+
+        <div
+          id="listaCitas"
+          class="citas"
+        >
+          <div class="cargando">
+            Cargando citas...
+          </div>
+        </div>
+
+      </div>
+
+
+      <div
+        id="seccionServicios"
+        class="oculto"
+      >
+
+        <div class="form-servicio">
+
+          <h3 id="tituloFormularioServicio">
+            Agregar servicio
+          </h3>
+
+          <form id="formularioServicio">
+
+            <input
+              type="text"
+              id="servicioNombre"
+              placeholder="Nombre del servicio"
+              required
+            >
+
+            <textarea
+              id="servicioDescripcion"
+              placeholder="Descripción"
+            ></textarea>
+
+            <div class="fila-doble">
+
+              <input
+                type="number"
+                id="servicioDuracion"
+                placeholder="Duración en minutos"
+                value="60"
+                min="1"
+                required
+              >
+
+              <input
+                type="number"
+                id="servicioPrecio"
+                placeholder="Precio"
+                min="0"
+                step="0.01"
+                required
+              >
+
+            </div>
+
+            <button
+              type="submit"
+              class="btn-guardar"
+            >
+              Guardar servicio
+            </button>
+
+            <button
+              type="button"
+              id="btnCancelarEdicion"
+              class="btn-cancelar-edicion oculto"
+            >
+              Cancelar edición
+            </button>
+
+          </form>
+
+        </div>
+
+
+        <h2>
+          Mis servicios
+        </h2>
+
+        <div
+          id="listaServicios"
+          class="lista-servicios"
+        >
+          <div class="cargando">
+            Cargando servicios...
+          </div>
         </div>
 
       </div>
@@ -362,6 +619,7 @@ const db =
 
 let negocioActualId = null;
 let negocioActualNombre = null;
+let servicioEditandoId = null;
 
 
 const login =
@@ -378,6 +636,34 @@ const listaCitas =
 
 const nombreNegocio =
   document.getElementById("nombreNegocio");
+
+const seccionCitas =
+  document.getElementById("seccionCitas");
+
+const seccionServicios =
+  document.getElementById("seccionServicios");
+
+const btnTabCitas =
+  document.getElementById("btnTabCitas");
+
+const btnTabServicios =
+  document.getElementById("btnTabServicios");
+
+const listaServicios =
+  document.getElementById("listaServicios");
+
+const formularioServicio =
+  document.getElementById("formularioServicio");
+
+const tituloFormularioServicio =
+  document.getElementById(
+    "tituloFormularioServicio"
+  );
+
+const btnCancelarEdicion =
+  document.getElementById(
+    "btnCancelarEdicion"
+  );
 
 
 document
@@ -396,6 +682,30 @@ document
   );
 
 
+btnTabCitas.addEventListener(
+  "click",
+  () => cambiarPestana("citas")
+);
+
+
+btnTabServicios.addEventListener(
+  "click",
+  () => cambiarPestana("servicios")
+);
+
+
+formularioServicio.addEventListener(
+  "submit",
+  guardarServicio
+);
+
+
+btnCancelarEdicion.addEventListener(
+  "click",
+  limpiarFormularioServicio
+);
+
+
 async function iniciarSesion() {
 
   const email =
@@ -410,6 +720,7 @@ async function iniciarSesion() {
       .value;
 
   ocultarMensaje();
+
 
   if (!email || !password) {
 
@@ -452,6 +763,7 @@ async function cerrarSesion() {
 
   negocioActualId = null;
   negocioActualNombre = null;
+  servicioEditandoId = null;
 
   panel.classList.add("oculto");
 
@@ -495,6 +807,8 @@ async function mostrarPanel(usuario) {
   }
 
 
+  cambiarPestana("citas");
+
   await cargarCitas();
 }
 
@@ -508,12 +822,9 @@ async function cargarNegocioUsuario(
     error
   } = await db
     .from("miembros_negocio")
-    .select(`
-      negocio_id,
-      es_admin,
-      es_profesional,
-      activo
-    `)
+    .select(
+      "negocio_id, es_admin, es_profesional, activo"
+    )
     .eq(
       "usuario_id",
       usuarioId
@@ -596,6 +907,49 @@ async function cargarNegocioUsuario(
 
 
   return true;
+}
+
+
+function cambiarPestana(
+  pestana
+) {
+
+  ocultarMensaje();
+
+  const viendoCitas =
+    pestana === "citas";
+
+
+  seccionCitas.classList.toggle(
+    "oculto",
+    !viendoCitas
+  );
+
+
+  seccionServicios.classList.toggle(
+    "oculto",
+    viendoCitas
+  );
+
+
+  btnTabCitas.classList.toggle(
+    "activa",
+    viendoCitas
+  );
+
+
+  btnTabServicios.classList.toggle(
+    "activa",
+    !viendoCitas
+  );
+
+
+  if (!viendoCitas) {
+
+    cargarServicios();
+
+  }
+
 }
 
 
@@ -859,10 +1213,8 @@ async function cargarCitas() {
 
         <button
           class="btn-confirmar"
-          onclick="cambiarEstado(
-            '${cita.id}',
-            'confirmada'
-          )"
+          data-id="${cita.id}"
+          data-estado="confirmada"
           ${
             cita.estado ===
             "confirmada"
@@ -875,10 +1227,8 @@ async function cargarCitas() {
 
         <button
           class="btn-atendida"
-          onclick="cambiarEstado(
-            '${cita.id}',
-            'atendida'
-          )"
+          data-id="${cita.id}"
+          data-estado="atendida"
           ${
             cita.estado ===
             "atendida"
@@ -891,10 +1241,8 @@ async function cargarCitas() {
 
         <button
           class="btn-cancelar"
-          onclick="cambiarEstado(
-            '${cita.id}',
-            'cancelada'
-          )"
+          data-id="${cita.id}"
+          data-estado="cancelada"
           ${
             cita.estado ===
             "cancelada"
@@ -907,10 +1255,8 @@ async function cargarCitas() {
 
         <button
           class="btn-no-asistio"
-          onclick="cambiarEstado(
-            '${cita.id}',
-            'no_asistio'
-          )"
+          data-id="${cita.id}"
+          data-estado="no_asistio"
           ${
             cita.estado ===
             "no_asistio"
@@ -926,208 +1272,5 @@ async function cargarCitas() {
     `;
 
 
-    listaCitas.appendChild(
-      tarjeta
-    );
-
-  });
-
-}
-
-
-async function cambiarEstado(
-  citaId,
-  nuevoEstado
-) {
-
-  ocultarMensaje();
-
-
-  if (
-    nuevoEstado ===
-    "cancelada"
-  ) {
-
-    const confirmar =
-      window.confirm(
-        "¿Seguro que deseas cancelar esta cita?"
-      );
-
-    if (!confirmar) {
-      return;
-    }
-
-  }
-
-
-  const {
-    error
-  } = await db
-    .from("citas")
-    .update({
-      estado:
-        nuevoEstado
-    })
-    .eq(
-      "id",
-      citaId
-    )
-    .eq(
-      "negocio_id",
-      negocioActualId
-    );
-
-
-  if (error) {
-
-    console.error(error);
-
-    mostrarError(
-      "No fue posible cambiar el estado de la cita."
-    );
-
-    return;
-  }
-
-
-  mostrarExito(
-    "Estado actualizado correctamente."
-  );
-
-
-  await cargarCitas();
-}
-
-
-function nombreEstado(
-  estado
-) {
-
-  const nombres = {
-
-    pendiente:
-      "Pendiente",
-
-    confirmada:
-      "Confirmada",
-
-    atendida:
-      "Atendida",
-
-    cancelada:
-      "Cancelada",
-
-    no_asistio:
-      "No asistió"
-  };
-
-
-  return nombres[estado]
-    || estado;
-}
-
-
-function formatearFecha(
-  fecha
-) {
-
-  const partes =
-    fecha.split("-");
-
-  return (
-    partes[2]
-    + "/"
-    + partes[1]
-    + "/"
-    + partes[0]
-  );
-}
-
-
-function escapar(
-  texto
-) {
-
-  return String(texto)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
-}
-
-
-async function revisarSesion() {
-
-  const {
-    data
-  } =
-    await db.auth.getSession();
-
-
-  if (
-    data.session &&
-    data.session.user
-  ) {
-
-    await mostrarPanel(
-      data.session.user
-    );
-
-  }
-
-}
-
-
-function mostrarError(
-  texto
-) {
-
-  mensaje.textContent =
-    texto;
-
-  mensaje.className =
-    "mensaje error";
-}
-
-
-function mostrarExito(
-  texto
-) {
-
-  mensaje.textContent =
-    texto;
-
-  mensaje.className =
-    "mensaje exito";
-}
-
-
-function ocultarMensaje() {
-
-  mensaje.className =
-    "mensaje oculto";
-}
-
-
-revisarSesion();
-
-</script>
-
-</body>
-</html>
+    tarjeta
+      .querySelectorAll
