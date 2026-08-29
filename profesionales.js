@@ -13,6 +13,7 @@ const db =
 
 let negocioActualId = null;
 let profesionalEditandoId = null;
+let profesionalServiciosId = null;
 
 
 const nombreNegocio =
@@ -35,6 +36,21 @@ const tituloFormularioProfesional =
 
 const btnCancelarEdicion =
   document.getElementById("btnCancelarEdicion");
+
+const seccionServiciosProfesional =
+  document.getElementById("seccionServiciosProfesional");
+
+const nombreProfesionalServicios =
+  document.getElementById("nombreProfesionalServicios");
+
+const listaServiciosProfesional =
+  document.getElementById("listaServiciosProfesional");
+
+const btnGuardarServiciosProfesional =
+  document.getElementById("btnGuardarServiciosProfesional");
+
+const btnCerrarServiciosProfesional =
+  document.getElementById("btnCerrarServiciosProfesional");
 
 
 document
@@ -64,6 +80,18 @@ formularioProfesional.addEventListener(
 btnCancelarEdicion.addEventListener(
   "click",
   limpiarFormulario
+);
+
+
+btnGuardarServiciosProfesional.addEventListener(
+  "click",
+  guardarServiciosProfesional
+);
+
+
+btnCerrarServiciosProfesional.addEventListener(
+  "click",
+  cerrarServiciosProfesional
 );
 
 
@@ -330,12 +358,21 @@ async function cargarProfesionales() {
 
           <button
             class="btn-editar"
+            type="button"
           >
             Editar
           </button>
 
           <button
+            class="btn-servicios"
+            type="button"
+          >
+            Servicios
+          </button>
+
+          <button
             class="btn-activar"
+            type="button"
           >
             ${
               profesional.activo
@@ -354,6 +391,14 @@ async function cargarProfesionales() {
         .addEventListener(
           "click",
           () => editarProfesional(profesional)
+        );
+
+
+      tarjeta
+        .querySelector(".btn-servicios")
+        .addEventListener(
+          "click",
+          () => abrirServiciosProfesional(profesional)
         );
 
 
@@ -397,274 +442,4 @@ function editarProfesional(
   document
     .getElementById("profesionalEspecialidad")
     .value =
-      profesional.especialidad || "";
-
-
-  btnCancelarEdicion
-    .classList
-    .remove("oculto");
-
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-}
-
-
-function limpiarFormulario() {
-
-  profesionalEditandoId = null;
-
-  formularioProfesional.reset();
-
-
-  tituloFormularioProfesional.textContent =
-    "Agregar profesional";
-
-
-  btnCancelarEdicion
-    .classList
-    .add("oculto");
-}
-
-
-async function guardarProfesional(
-  evento
-) {
-
-  evento.preventDefault();
-
-  ocultarMensaje();
-
-
-  if (!negocioActualId) {
-
-    mostrarError(
-      "No se encontró el negocio."
-    );
-
-    return;
-  }
-
-
-  const nombre =
-    document
-      .getElementById("profesionalNombre")
-      .value
-      .trim();
-
-
-  const especialidad =
-    document
-      .getElementById("profesionalEspecialidad")
-      .value
-      .trim();
-
-
-  if (!nombre) {
-
-    mostrarError(
-      "Escribe el nombre del profesional."
-    );
-
-    return;
-  }
-
-
-  const datos = {
-
-    nombre,
-
-    especialidad:
-      especialidad || null
-
-  };
-
-
-  let error;
-
-
-  if (profesionalEditandoId) {
-
-    ({
-      error
-    } = await db
-      .from("profesionales")
-      .update(datos)
-      .eq(
-        "id",
-        profesionalEditandoId
-      )
-      .eq(
-        "negocio_id",
-        negocioActualId
-      ));
-
-  } else {
-
-    ({
-      error
-    } = await db
-      .from("profesionales")
-      .insert({
-        negocio_id:
-          negocioActualId,
-
-        ...datos,
-
-        activo:
-          true
-      }));
-
-  }
-
-
-  if (error) {
-
-    console.error(error);
-
-    mostrarError(
-      "No fue posible guardar el profesional."
-    );
-
-    return;
-  }
-
-
-  mostrarExito(
-    profesionalEditandoId
-      ? "Profesional actualizado correctamente."
-      : "Profesional agregado correctamente."
-  );
-
-
-  limpiarFormulario();
-
-  await cargarProfesionales();
-}
-
-
-async function cambiarEstadoProfesional(
-  profesional
-) {
-
-  ocultarMensaje();
-
-
-  const nuevoEstado =
-    !profesional.activo;
-
-
-  const texto =
-    nuevoEstado
-      ? "activar"
-      : "desactivar";
-
-
-  const confirmar =
-    window.confirm(
-      `¿Seguro que deseas ${texto} "${profesional.nombre}"?`
-    );
-
-
-  if (!confirmar) {
-    return;
-  }
-
-
-  const {
-    error
-  } = await db
-    .from("profesionales")
-    .update({
-      activo:
-        nuevoEstado
-    })
-    .eq(
-      "id",
-      profesional.id
-    )
-    .eq(
-      "negocio_id",
-      negocioActualId
-    );
-
-
-  if (error) {
-
-    console.error(error);
-
-    mostrarError(
-      "No fue posible actualizar el profesional."
-    );
-
-    return;
-  }
-
-
-  mostrarExito(
-    nuevoEstado
-      ? "Profesional activado."
-      : "Profesional desactivado."
-  );
-
-
-  await cargarProfesionales();
-}
-
-
-async function cerrarSesion() {
-
-  await db.auth.signOut();
-
-  window.location.href =
-    "panel.html";
-}
-
-
-function mostrarError(
-  texto
-) {
-
-  mensaje.textContent =
-    texto;
-
-  mensaje.className =
-    "mensaje error";
-}
-
-
-function mostrarExito(
-  texto
-) {
-
-  mensaje.textContent =
-    texto;
-
-  mensaje.className =
-    "mensaje exito";
-}
-
-
-function ocultarMensaje() {
-
-  mensaje.className =
-    "mensaje oculto";
-}
-
-
-function escapar(
-  texto
-) {
-
-  return String(texto)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-
-revisarSesion();
+      profesional.es
