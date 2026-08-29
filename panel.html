@@ -23,7 +23,7 @@
     }
 
     .contenedor {
-      max-width: 620px;
+      max-width: 650px;
       margin: auto;
     }
 
@@ -64,15 +64,22 @@
     }
 
     button {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #btnLogin,
+    #btnCerrar {
       width: 100%;
       padding: 15px;
-      border: none;
-      border-radius: 14px;
+      font-size: 16px;
+    }
+
+    #btnLogin {
       background: #514458;
       color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
     }
 
     .oculto {
@@ -87,6 +94,12 @@
 
     .error {
       background: #fdeeee;
+      color: #8b2525;
+    }
+
+    .exito {
+      background: #edf8ef;
+      color: #276337;
     }
 
     .barra {
@@ -112,7 +125,7 @@
 
     .citas {
       display: grid;
-      gap: 13px;
+      gap: 15px;
     }
 
     .cita {
@@ -143,11 +156,73 @@
     .estado {
       display: inline-block;
       margin-top: 10px;
-      padding: 6px 10px;
+      padding: 7px 11px;
       border-radius: 999px;
       background: #eee9f0;
       font-size: 13px;
       font-weight: bold;
+    }
+
+    .estado-confirmada {
+      background: #e7f5ec;
+      color: #26633a;
+    }
+
+    .estado-pendiente {
+      background: #fff4d6;
+      color: #815f00;
+    }
+
+    .estado-atendida {
+      background: #e7efff;
+      color: #29528a;
+    }
+
+    .estado-cancelada {
+      background: #fde7e7;
+      color: #8a3030;
+    }
+
+    .estado-no_asistio {
+      background: #eeeeee;
+      color: #555;
+    }
+
+    .acciones {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .acciones button {
+      padding: 11px 8px;
+      font-size: 13px;
+    }
+
+    .btn-confirmar {
+      background: #e4f5e9;
+      color: #27633a;
+    }
+
+    .btn-atendida {
+      background: #e6efff;
+      color: #294f85;
+    }
+
+    .btn-cancelar {
+      background: #fde8e8;
+      color: #8b3030;
+    }
+
+    .btn-no-asistio {
+      background: #ececec;
+      color: #444;
+    }
+
+    .acciones button:disabled {
+      opacity: .45;
+      cursor: default;
     }
 
     .cargando,
@@ -431,11 +506,6 @@ async function cargarCitas() {
   }
 
 
-  /*
-    Sacamos todos los IDs de profesionales
-    que aparecen en las citas.
-  */
-
   const idsProfesionales =
     [
       ...new Set(
@@ -460,13 +530,7 @@ async function cargarCitas() {
       .in("id", idsProfesionales);
 
 
-    if (errorProfesionales) {
-
-      console.error(
-        errorProfesionales
-      );
-
-    } else {
+    if (!errorProfesionales && profesionales) {
 
       profesionales.forEach(
         profesional => {
@@ -525,6 +589,12 @@ async function cargarCitas() {
       ] || "Sin profesional";
 
 
+    const estadoTexto =
+      nombreEstado(
+        cita.estado
+      );
+
+
     tarjeta.innerHTML = `
 
       <div class="fecha">
@@ -537,12 +607,12 @@ async function cargarCitas() {
 
       <div class="dato">
         <strong>Paciente:</strong>
-        ${cita.paciente_nombre || ""}
+        ${escapar(cita.paciente_nombre || "")}
       </div>
 
       <div class="dato">
         <strong>Teléfono:</strong>
-        ${cita.paciente_telefono || ""}
+        ${escapar(cita.paciente_telefono || "")}
       </div>
 
       ${
@@ -551,7 +621,7 @@ async function cargarCitas() {
         `
         <div class="dato">
           <strong>Correo:</strong>
-          ${cita.paciente_email}
+          ${escapar(cita.paciente_email)}
         </div>
         `
         :
@@ -560,16 +630,82 @@ async function cargarCitas() {
 
       <div class="dato">
         <strong>Servicio:</strong>
-        ${servicio}
+        ${escapar(servicio)}
       </div>
 
       <div class="dato">
         <strong>Profesional:</strong>
-        ${profesional}
+        ${escapar(profesional)}
       </div>
 
-      <div class="estado">
-        ${cita.estado}
+      <div
+        class="estado estado-${cita.estado}"
+      >
+        ${estadoTexto}
+      </div>
+
+      <div class="acciones">
+
+        <button
+          class="btn-confirmar"
+          onclick="cambiarEstado(
+            '${cita.id}',
+            'confirmada'
+          )"
+          ${
+            cita.estado === "confirmada"
+            ? "disabled"
+            : ""
+          }
+        >
+          ✓ Confirmar
+        </button>
+
+        <button
+          class="btn-atendida"
+          onclick="cambiarEstado(
+            '${cita.id}',
+            'atendida'
+          )"
+          ${
+            cita.estado === "atendida"
+            ? "disabled"
+            : ""
+          }
+        >
+          ✓ Atendida
+        </button>
+
+        <button
+          class="btn-cancelar"
+          onclick="cambiarEstado(
+            '${cita.id}',
+            'cancelada'
+          )"
+          ${
+            cita.estado === "cancelada"
+            ? "disabled"
+            : ""
+          }
+        >
+          ✕ Cancelar
+        </button>
+
+        <button
+          class="btn-no-asistio"
+          onclick="cambiarEstado(
+            '${cita.id}',
+            'no_asistio'
+          )"
+          ${
+            cita.estado === "no_asistio"
+            ? "disabled"
+            : ""
+          }
+        >
+          No asistió
+        </button>
+
       </div>
 
     `;
@@ -581,6 +717,87 @@ async function cargarCitas() {
 
   });
 
+}
+
+
+async function cambiarEstado(
+  citaId,
+  nuevoEstado
+) {
+
+  ocultarMensaje();
+
+
+  if (nuevoEstado === "cancelada") {
+
+    const confirmar =
+      window.confirm(
+        "¿Seguro que deseas cancelar esta cita?"
+      );
+
+    if (!confirmar) {
+      return;
+    }
+
+  }
+
+
+  const {
+    error
+  } = await db
+    .from("citas")
+    .update({
+      estado: nuevoEstado
+    })
+    .eq(
+      "id",
+      citaId
+    );
+
+
+  if (error) {
+
+    console.error(error);
+
+    mostrarError(
+      "No fue posible cambiar el estado de la cita."
+    );
+
+    return;
+  }
+
+
+  mostrarExito(
+    "Estado actualizado correctamente."
+  );
+
+
+  await cargarCitas();
+}
+
+
+function nombreEstado(estado) {
+
+  const nombres = {
+    pendiente:
+      "Pendiente",
+
+    confirmada:
+      "Confirmada",
+
+    atendida:
+      "Atendida",
+
+    cancelada:
+      "Cancelada",
+
+    no_asistio:
+      "No asistió"
+  };
+
+
+  return nombres[estado]
+    || estado;
 }
 
 
@@ -596,6 +813,17 @@ function formatearFecha(fecha) {
     + "/"
     + partes[0]
   );
+}
+
+
+function escapar(texto) {
+
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 
@@ -625,6 +853,16 @@ function mostrarError(texto) {
 
   mensaje.className =
     "mensaje error";
+}
+
+
+function mostrarExito(texto) {
+
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje exito";
 }
 
 
