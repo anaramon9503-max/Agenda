@@ -23,7 +23,7 @@
     }
 
     .contenedor {
-      max-width: 700px;
+      max-width: 650px;
       margin: auto;
     }
 
@@ -49,25 +49,18 @@
       box-shadow: 0 10px 35px rgba(0,0,0,.07);
     }
 
-    h2, h3 {
+    h2 {
       margin-top: 0;
     }
 
-    input,
-    textarea {
+    input {
       width: 100%;
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 15px;
+      margin-bottom: 13px;
       border: 1px solid #ddd6df;
       border-radius: 14px;
       font-size: 16px;
       background: #faf8fb;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 90px;
     }
 
     button {
@@ -90,7 +83,7 @@
     }
 
     .oculto {
-      display: none !important;
+      display: none;
     }
 
     .mensaje {
@@ -145,45 +138,23 @@
       color: #514458;
     }
 
-    .menu {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px;
-      margin: 20px 0;
+    .titulo-citas {
+      margin: 25px 0 14px;
     }
 
-    .menu button {
-      padding: 13px 8px;
-      background: #eee9f0;
-      color: #514458;
-      font-size: 14px;
-    }
-
-    .menu button.activo {
-      background: #514458;
-      color: white;
-    }
-
-    .titulo-seccion {
-      margin: 22px 0 14px;
-    }
-
-    .citas,
-    .lista-servicios {
+    .citas {
       display: grid;
       gap: 15px;
     }
 
-    .cita,
-    .servicio {
+    .cita {
       background: #faf8fb;
       border: 1px solid #ebe5ed;
       border-radius: 17px;
       padding: 17px;
     }
 
-    .fecha,
-    .servicio-nombre {
+    .fecha {
       font-weight: bold;
       font-size: 17px;
       margin-bottom: 7px;
@@ -211,8 +182,7 @@
       font-weight: bold;
     }
 
-    .estado-confirmada,
-    .activo-si {
+    .estado-confirmada {
       background: #e7f5ec;
       color: #26633a;
     }
@@ -227,8 +197,7 @@
       color: #29528a;
     }
 
-    .estado-cancelada,
-    .activo-no {
+    .estado-cancelada {
       background: #fde7e7;
       color: #8a3030;
     }
@@ -270,59 +239,13 @@
       color: #444;
     }
 
-    .btn-editar {
-      background: #eee9f0;
-      color: #514458;
-    }
-
-    .btn-desactivar {
-      background: #fde8e8;
-      color: #8b3030;
-    }
-
-    .btn-activar {
-      background: #e4f5e9;
-      color: #27633a;
-    }
-
     .acciones button:disabled {
       opacity: .45;
       cursor: default;
     }
 
-    .form-servicio {
-      background: #f6f2f7;
-      padding: 17px;
-      border-radius: 17px;
-      margin-bottom: 20px;
-    }
-
-    .form-servicio button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 4px;
-    }
-
-    .btn-guardar {
-      background: #514458;
-      color: white;
-    }
-
-    .btn-cancelar-edicion {
-      margin-top: 8px !important;
-      background: #e8e3ea;
-      color: #514458;
-    }
-
-    .precio {
-      font-size: 18px;
-      font-weight: bold;
-      color: #514458;
-      margin-top: 8px;
-    }
-
     .cargando,
-    .sin-datos {
+    .sin-citas {
       text-align: center;
       padding: 25px 10px;
       color: #777;
@@ -381,6 +304,8 @@
           </div>
         </div>
 
+        <h2>Mis citas 💜</h2>
+
         <div class="correo">
           Sesión:
           <span id="correoUsuario"></span>
@@ -395,113 +320,14 @@
 
       </div>
 
+      <h2 class="titulo-citas">
+        Próximas citas
+      </h2>
 
-      <div class="menu">
+      <div id="listaCitas" class="citas">
 
-        <button
-          id="tabCitas"
-          class="activo"
-          onclick="mostrarSeccion('citas')"
-        >
-          📅 Citas
-        </button>
-
-        <button
-          id="tabServicios"
-          onclick="mostrarSeccion('servicios')"
-        >
-          🛍️ Servicios
-        </button>
-
-      </div>
-
-
-      <div id="seccionCitas">
-
-        <h2 class="titulo-seccion">
-          Próximas citas
-        </h2>
-
-        <div id="listaCitas" class="citas">
-
-          <div class="cargando">
-            Cargando citas...
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div
-        id="seccionServicios"
-        class="oculto"
-      >
-
-        <h2 class="titulo-seccion">
-          Servicios
-        </h2>
-
-        <div class="form-servicio">
-
-          <h3 id="tituloFormServicio">
-            Agregar servicio
-          </h3>
-
-          <input
-            type="text"
-            id="servicioNombre"
-            placeholder="Nombre del servicio"
-          >
-
-          <textarea
-            id="servicioDescripcion"
-            placeholder="Descripción"
-          ></textarea>
-
-          <input
-            type="number"
-            id="servicioDuracion"
-            placeholder="Duración en minutos"
-            min="1"
-          >
-
-          <input
-            type="number"
-            id="servicioPrecio"
-            placeholder="Precio"
-            min="0"
-            step="0.01"
-          >
-
-          <button
-            id="btnGuardarServicio"
-            class="btn-guardar"
-            onclick="guardarServicio()"
-          >
-            + Agregar servicio
-          </button>
-
-          <button
-            id="btnCancelarEdicion"
-            class="btn-cancelar-edicion oculto"
-            onclick="cancelarEdicionServicio()"
-          >
-            Cancelar edición
-          </button>
-
-        </div>
-
-
-        <div
-          id="listaServicios"
-          class="lista-servicios"
-        >
-
-          <div class="cargando">
-            Cargando servicios...
-          </div>
-
+        <div class="cargando">
+          Cargando citas...
         </div>
 
       </div>
@@ -535,10 +361,7 @@ const db =
 
 
 let negocioActualId = null;
-
 let negocioActualNombre = null;
-
-let servicioEditandoId = null;
 
 
 const login =
@@ -552,9 +375,6 @@ const mensaje =
 
 const listaCitas =
   document.getElementById("listaCitas");
-
-const listaServicios =
-  document.getElementById("listaServicios");
 
 const nombreNegocio =
   document.getElementById("nombreNegocio");
@@ -631,10 +451,7 @@ async function cerrarSesion() {
   await db.auth.signOut();
 
   negocioActualId = null;
-
   negocioActualNombre = null;
-
-  servicioEditandoId = null;
 
   panel.classList.add("oculto");
 
@@ -672,7 +489,7 @@ async function mostrarPanel(usuario) {
   if (!negocioEncontrado) {
 
     listaCitas.innerHTML =
-      '<div class="sin-datos">No se encontró un negocio asociado a esta cuenta.</div>';
+      '<div class="sin-citas">No se encontró un negocio asociado a esta cuenta.</div>';
 
     return;
   }
@@ -716,7 +533,7 @@ async function cargarNegocioUsuario(
       "No disponible";
 
     mostrarError(
-      "No fue posible identificar el negocio."
+      "No fue posible identificar el negocio de esta cuenta."
     );
 
     return false;
@@ -773,84 +590,12 @@ async function cargarNegocioUsuario(
   negocioActualNombre =
     negocios[0].nombre;
 
+
   nombreNegocio.textContent =
     negocioActualNombre;
 
 
   return true;
-}
-
-
-function mostrarSeccion(seccion) {
-
-  ocultarMensaje();
-
-
-  const seccionCitas =
-    document.getElementById(
-      "seccionCitas"
-    );
-
-  const seccionServicios =
-    document.getElementById(
-      "seccionServicios"
-    );
-
-  const tabCitas =
-    document.getElementById(
-      "tabCitas"
-    );
-
-  const tabServicios =
-    document.getElementById(
-      "tabServicios"
-    );
-
-
-  if (
-    seccion ===
-    "servicios"
-  ) {
-
-    seccionCitas.classList.add(
-      "oculto"
-    );
-
-    seccionServicios.classList.remove(
-      "oculto"
-    );
-
-    tabCitas.classList.remove(
-      "activo"
-    );
-
-    tabServicios.classList.add(
-      "activo"
-    );
-
-    cargarServicios();
-
-  } else {
-
-    seccionServicios.classList.add(
-      "oculto"
-    );
-
-    seccionCitas.classList.remove(
-      "oculto"
-    );
-
-    tabServicios.classList.remove(
-      "activo"
-    );
-
-    tabCitas.classList.add(
-      "activo"
-    );
-
-    cargarCitas();
-  }
-
 }
 
 
@@ -923,7 +668,7 @@ async function cargarCitas() {
     console.error(error);
 
     listaCitas.innerHTML =
-      '<div class="sin-datos">No fue posible cargar las citas.</div>';
+      '<div class="sin-citas">No fue posible cargar las citas.</div>';
 
     return;
   }
@@ -935,7 +680,7 @@ async function cargarCitas() {
   ) {
 
     listaCitas.innerHTML =
-      '<div class="sin-datos">No tienes próximas citas.</div>';
+      '<div class="sin-citas">No tienes próximas citas.</div>';
 
     return;
   }
@@ -962,7 +707,8 @@ async function cargarCitas() {
   ) {
 
     const {
-      data: profesionales
+      data: profesionales,
+      error: errorProfesionales
     } = await db
       .from(
         "profesionales_publicos"
@@ -976,7 +722,10 @@ async function cargarCitas() {
       );
 
 
-    if (profesionales) {
+    if (
+      !errorProfesionales &&
+      profesionales
+    ) {
 
       profesionales.forEach(
         profesional => {
@@ -1017,13 +766,19 @@ async function cargarCitas() {
     const horaInicio =
       String(
         cita.hora_inicio
-      ).substring(0, 5);
+      ).substring(
+        0,
+        5
+      );
 
 
     const horaFin =
       String(
         cita.hora_fin
-      ).substring(0, 5);
+      ).substring(
+        0,
+        5
+      );
 
 
     const servicio =
@@ -1037,6 +792,12 @@ async function cargarCitas() {
         cita.profesional_id
       ] ||
       "Sin profesional";
+
+
+    const estadoTexto =
+      nombreEstado(
+        cita.estado
+      );
 
 
     tarjeta.innerHTML = `
@@ -1091,9 +852,7 @@ async function cargarCitas() {
       <div
         class="estado estado-${cita.estado}"
       >
-        ${nombreEstado(
-          cita.estado
-        )}
+        ${estadoTexto}
       </div>
 
       <div class="acciones">
@@ -1224,7 +983,7 @@ async function cambiarEstado(
     console.error(error);
 
     mostrarError(
-      "No fue posible cambiar el estado."
+      "No fue posible cambiar el estado de la cita."
     );
 
     return;
@@ -1240,82 +999,135 @@ async function cambiarEstado(
 }
 
 
-async function cargarServicios() {
+function nombreEstado(
+  estado
+) {
 
-  listaServicios.innerHTML =
-    '<div class="cargando">Cargando servicios...</div>';
+  const nombres = {
 
+    pendiente:
+      "Pendiente",
+
+    confirmada:
+      "Confirmada",
+
+    atendida:
+      "Atendida",
+
+    cancelada:
+      "Cancelada",
+
+    no_asistio:
+      "No asistió"
+  };
+
+
+  return nombres[estado]
+    || estado;
+}
+
+
+function formatearFecha(
+  fecha
+) {
+
+  const partes =
+    fecha.split("-");
+
+  return (
+    partes[2]
+    + "/"
+    + partes[1]
+    + "/"
+    + partes[0]
+  );
+}
+
+
+function escapar(
+  texto
+) {
+
+  return String(texto)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+
+async function revisarSesion() {
 
   const {
-    data: servicios,
-    error
-  } = await db
-    .from("servicios")
-    .select(`
-      id,
-      nombre,
-      descripcion,
-      duracion_minutos,
-      precio,
-      activo
-    `)
-    .eq(
-      "negocio_id",
-      negocioActualId
-    )
-    .order(
-      "nombre",
-      {
-        ascending: true
-      }
-    );
-
-
-  if (error) {
-
-    console.error(error);
-
-    listaServicios.innerHTML =
-      '<div class="sin-datos">No fue posible cargar los servicios.</div>';
-
-    return;
-  }
+    data
+  } =
+    await db.auth.getSession();
 
 
   if (
-    !servicios ||
-    servicios.length === 0
+    data.session &&
+    data.session.user
   ) {
 
-    listaServicios.innerHTML =
-      '<div class="sin-datos">Aún no hay servicios.</div>';
+    await mostrarPanel(
+      data.session.user
+    );
 
-    return;
   }
 
-
-  listaServicios.innerHTML = "";
-
-
-  servicios.forEach(servicio => {
-
-    const tarjeta =
-      document.createElement(
-        "div"
-      );
-
-    tarjeta.className =
-      "servicio";
+}
 
 
-    const precio =
-      Number(
-        servicio.precio || 0
-      ).toFixed(2);
+function mostrarError(
+  texto
+) {
+
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje error";
+}
 
 
-    tarjeta.innerHTML = `
+function mostrarExito(
+  texto
+) {
 
-      <div class="servicio-nombre">
-        ${escapar(
-  
+  mensaje.textContent =
+    texto;
+
+  mensaje.className =
+    "mensaje exito";
+}
+
+
+function ocultarMensaje() {
+
+  mensaje.className =
+    "mensaje oculto";
+}
+
+
+revisarSesion();
+
+</script>
+
+</body>
+</html>
