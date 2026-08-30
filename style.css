@@ -527,4 +527,45 @@ button {
     grid-template-columns: 1fr;
   }
 
+
+   .horario-dia-card {
+  margin-bottom: 16px;
+}
+
+.horas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+}
+
+.hora-chip {
+  background: #f4eff8;
+  border-radius: 12px;
+  padding: 9px 13px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.horarios-bloques {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.horario-bloque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.horario-bloque button {
+  width: auto;
+}
+
 }
