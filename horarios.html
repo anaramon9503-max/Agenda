@@ -1,64 +1,65 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>AR Agenda | Horarios</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <link rel="stylesheet" href="style.css">
+  <title>Horarios | AR Agenda</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
+
 
 <body>
 
-<div class="contenedor">
+  <div class="container">
 
-  <div class="encabezado">
-    <h1>AR Agenda</h1>
-    <p>Administración de horarios</p>
-  </div>
 
-  <div class="tarjeta">
+    <!-- ENCABEZADO -->
 
-    <div class="barra">
+    <header class="header">
 
-      <div class="negocio">
+      <div>
 
-        <div class="negocio-label">
-          Negocio
-        </div>
+        <h1>Horarios</h1>
 
-        <div
-          id="nombreNegocio"
-          class="negocio-nombre"
-        >
+        <p id="nombreNegocio">
           Cargando...
-        </div>
+        </p>
+
+        <small id="correoUsuario"></small>
 
       </div>
 
+    </header>
 
-      <div class="correo">
-        Sesión:
-        <span id="correoUsuario"></span>
-      </div>
 
+    <!-- BOTONES SUPERIORES -->
+
+    <div class="card">
 
       <button
         id="btnVolver"
-        class="cerrar"
-        style="width:100%; padding:15px; margin-bottom:10px;"
+        type="button"
       >
-        ← Volver a citas
+        ← Volver al panel
       </button>
-
 
       <button
         id="btnCerrar"
-        class="cerrar"
-        style="width:100%; padding:15px;"
+        type="button"
       >
         Cerrar sesión
       </button>
@@ -66,12 +67,27 @@
     </div>
 
 
-    <div class="form-servicio">
+    <!-- MENSAJES -->
 
-      <h3>
-        Agregar horario
-      </h3>
+    <div
+      id="mensaje"
+      class="mensaje oculto"
+    ></div>
 
+
+    <!-- CONFIGURAR HORARIO -->
+
+    <section class="card">
+
+      <h2>Agregar horario</h2>
+
+      <p>
+        Selecciona el profesional, servicio,
+        día y la hora que estará disponible.
+      </p>
+
+
+      <!-- PROFESIONAL -->
 
       <label for="profesionalHorario">
         Profesional
@@ -81,23 +97,33 @@
         id="profesionalHorario"
         required
       >
+
         <option value="">
           Selecciona un profesional
         </option>
+
       </select>
 
-      <label for="servicioHorario">
-  Servicio
-</label>
 
-<select
-  id="servicioHorario"
-  required
->
-  <option value="">
-    Primero selecciona un profesional
-  </option>
-</select>
+      <!-- SERVICIO -->
+
+      <label for="servicioHorario">
+        Servicio
+      </label>
+
+      <select
+        id="servicioHorario"
+        required
+      >
+
+        <option value="">
+          Primero selecciona un profesional
+        </option>
+
+      </select>
+
+
+      <!-- DÍA -->
 
       <label for="diaHorario">
         Día
@@ -143,79 +169,63 @@
       </select>
 
 
-      <div class="fila-doble">
+      <!-- HORA -->
 
-        <div>
+      <label for="horaSlot">
+        Hora disponible
+      </label>
 
-          <label for="horaInicio">
-            Hora de inicio
-          </label>
-
-          <input
-            type="time"
-            id="horaInicio"
-            required
-          >
-
-        </div>
+      <input
+        id="horaSlot"
+        type="time"
+        required
+      >
 
 
-        <div>
-
-          <label for="horaFin">
-            Hora de fin
-          </label>
-
-          <input
-            type="time"
-            id="horaFin"
-            required
-          >
-
-        </div>
-
-      </div>
-
+      <!-- GUARDAR -->
 
       <button
-        type="button"
         id="btnGuardarHorario"
-        class="btn-guardar"
+        type="button"
       >
-        Guardar horario
+        + Agregar horario
       </button>
 
-    </div>
+    </section>
 
 
-    <h2>
-      Horarios configurados
-    </h2>
+    <!-- HORARIOS CREADOS -->
+
+    <section class="card">
+
+      <h2>Horarios asignados</h2>
+
+      <p>
+        Aquí aparecerán las horas que
+        agregues para el profesional y
+        servicio seleccionados.
+      </p>
 
 
-    <div
-      id="listaHorarios"
-      class="lista-servicios"
-    >
+      <div id="listaHorarios">
 
-      <div class="cargando">
-        Cargando horarios...
+        <div class="sin-resultados">
+
+          Selecciona un profesional
+          y un servicio.
+
+        </div>
+
       </div>
 
-    </div>
+    </section>
 
-
-    <div
-      id="mensaje"
-      class="mensaje oculto"
-    ></div>
 
   </div>
 
-</div>
 
-
-<script src="horarios.js"></script>
+  <script src="horarios.js?v=3"></script>
 
 </body>
+
 </html>
