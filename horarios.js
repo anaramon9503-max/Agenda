@@ -10,8 +10,13 @@ const db =
     SUPABASE_KEY
   );
 
+
 let negocioActualId = null;
-let profesionalesMapa = {};
+
+
+/* =========================
+   ELEMENTOS
+========================= */
 
 const nombreNegocio =
   document.getElementById("nombreNegocio");
@@ -41,26 +46,46 @@ const mensaje =
   document.getElementById("mensaje");
 
 
+/* =========================
+   BOTONES
+========================= */
+
 document
   .getElementById("btnVolver")
-  .addEventListener("click", () => {
-    window.location.href = "panel.html";
-  });
+  .addEventListener(
+    "click",
+    () => {
+      window.location.href =
+        "panel.html";
+    }
+  );
 
 
 document
   .getElementById("btnCerrar")
-  .addEventListener("click", cerrarSesion);
+  .addEventListener(
+    "click",
+    cerrarSesion
+  );
 
 
 document
   .getElementById("btnGuardarHorario")
-  .addEventListener("click", guardarHorario);
+  .addEventListener(
+    "click",
+    guardarHorario
+  );
 
+
+/* =========================
+   CAMBIO DE PROFESIONAL
+========================= */
 
 profesionalHorario.addEventListener(
   "change",
   async () => {
+
+    ocultarMensaje();
 
     await cargarServiciosProfesional();
 
@@ -70,9 +95,19 @@ profesionalHorario.addEventListener(
 );
 
 
+/* =========================
+   CAMBIO DE SERVICIO
+========================= */
+
 servicioHorario.addEventListener(
   "change",
-  cargarHorarios
+  async () => {
+
+    ocultarMensaje();
+
+    await cargarHorarios();
+
+  }
 );
 
 
@@ -122,8 +157,13 @@ async function revisarSesion() {
 
   await cargarProfesionales();
 
+
   listaHorarios.innerHTML =
-    '<div class="sin-resultados">Selecciona un profesional para ver sus horarios.</div>';
+    `
+      <div class="sin-resultados">
+        Selecciona un profesional.
+      </div>
+    `;
 }
 
 
@@ -144,9 +184,17 @@ async function cargarNegocioUsuario(
     error
   } = await db
     .from("miembros_negocio")
-    .select("negocio_id, activo")
-    .eq("usuario_id", usuarioId)
-    .eq("activo", true)
+    .select(
+      "negocio_id, activo"
+    )
+    .eq(
+      "usuario_id",
+      usuarioId
+    )
+    .eq(
+      "activo",
+      true
+    )
     .limit(1);
 
 
@@ -190,8 +238,13 @@ async function cargarNegocioUsuario(
     error: errorNegocio
   } = await db
     .from("negocios_publicos")
-    .select("id, nombre")
-    .eq("id", negocioActualId)
+    .select(
+      "id, nombre"
+    )
+    .eq(
+      "id",
+      negocioActualId
+    )
     .limit(1);
 
 
@@ -201,7 +254,9 @@ async function cargarNegocioUsuario(
     negocios.length === 0
   ) {
 
-    console.error(errorNegocio);
+    console.error(
+      errorNegocio
+    );
 
     nombreNegocio.textContent =
       "Negocio";
@@ -225,7 +280,11 @@ async function cargarNegocioUsuario(
 async function cargarProfesionales() {
 
   profesionalHorario.innerHTML =
-    '<option value="">Selecciona un profesional</option>';
+    `
+      <option value="">
+        Selecciona un profesional
+      </option>
+    `;
 
 
   const {
@@ -233,11 +292,9 @@ async function cargarProfesionales() {
     error
   } = await db
     .from("profesionales")
-    .select(`
-      id,
-      nombre,
-      activo
-    `)
+    .select(
+      "id, nombre, activo"
+    )
     .eq(
       "negocio_id",
       negocioActualId
@@ -266,59 +323,57 @@ async function cargarProfesionales() {
   }
 
 
-  profesionalesMapa = {};
+  (profesionales || [])
+    .forEach(
+      profesional => {
 
+        const opcion =
+          document.createElement(
+            "option"
+          );
 
-  (profesionales || []).forEach(
-    profesional => {
+        opcion.value =
+          profesional.id;
 
-      profesionalesMapa[
-        profesional.id
-      ] = profesional.nombre;
+        opcion.textContent =
+          profesional.nombre;
 
+        profesionalHorario
+          .appendChild(
+            opcion
+          );
 
-      const opcion =
-        document.createElement(
-          "option"
-        );
-
-
-      opcion.value =
-        profesional.id;
-
-
-      opcion.textContent =
-        profesional.nombre;
-
-
-      profesionalHorario.appendChild(
-        opcion
-      );
-
-    }
-  );
+      }
+    );
 }
 
 
 /* =========================
-   CARGAR SERVICIOS
-   DEL PROFESIONAL
+   SERVICIOS DEL PROFESIONAL
 ========================= */
 
 async function cargarServiciosProfesional() {
-
-  servicioHorario.innerHTML =
-    '<option value="">Selecciona un servicio</option>';
-
 
   const profesionalId =
     profesionalHorario.value;
 
 
+  servicioHorario.innerHTML =
+    `
+      <option value="">
+        Selecciona un servicio
+      </option>
+    `;
+
+
   if (!profesionalId) {
 
     servicioHorario.innerHTML =
-      '<option value="">Primero selecciona un profesional</option>';
+      `
+        <option value="">
+          Primero selecciona un profesional
+        </option>
+      `;
 
     return;
   }
@@ -329,7 +384,9 @@ async function cargarServiciosProfesional() {
     error: errorAsignaciones
   } = await db
     .from("profesional_servicios")
-    .select("servicio_id")
+    .select(
+      "servicio_id"
+    )
     .eq(
       "profesional_id",
       profesionalId
@@ -351,9 +408,11 @@ async function cargarServiciosProfesional() {
 
 
   const idsServicios =
-    (asignaciones || []).map(
-      item => item.servicio_id
-    );
+    (asignaciones || [])
+      .map(
+        item =>
+          item.servicio_id
+      );
 
 
   if (
@@ -361,7 +420,11 @@ async function cargarServiciosProfesional() {
   ) {
 
     servicioHorario.innerHTML =
-      '<option value="">Este profesional no tiene servicios asignados</option>';
+      `
+        <option value="">
+          Este profesional no tiene servicios asignados
+        </option>
+      `;
 
     return;
   }
@@ -372,11 +435,9 @@ async function cargarServiciosProfesional() {
     error: errorServicios
   } = await db
     .from("servicios")
-    .select(`
-      id,
-      nombre,
-      activo
-    `)
+    .select(
+      "id, nombre, activo"
+    )
     .in(
       "id",
       idsServicios
@@ -407,29 +468,28 @@ async function cargarServiciosProfesional() {
   }
 
 
-  (servicios || []).forEach(
-    servicio => {
+  (servicios || [])
+    .forEach(
+      servicio => {
 
-      const opcion =
-        document.createElement(
-          "option"
-        );
+        const opcion =
+          document.createElement(
+            "option"
+          );
 
+        opcion.value =
+          servicio.id;
 
-      opcion.value =
-        servicio.id;
+        opcion.textContent =
+          servicio.nombre;
 
+        servicioHorario
+          .appendChild(
+            opcion
+          );
 
-      opcion.textContent =
-        servicio.nombre;
-
-
-      servicioHorario.appendChild(
-        opcion
-      );
-
-    }
-  );
+      }
+    );
 }
 
 
@@ -442,7 +502,6 @@ async function cargarHorarios() {
   const profesionalId =
     profesionalHorario.value;
 
-
   const servicioId =
     servicioHorario.value;
 
@@ -450,7 +509,11 @@ async function cargarHorarios() {
   if (!profesionalId) {
 
     listaHorarios.innerHTML =
-      '<div class="sin-resultados">Selecciona un profesional para ver sus horarios.</div>';
+      `
+        <div class="sin-resultados">
+          Selecciona un profesional para ver sus horarios.
+        </div>
+      `;
 
     return;
   }
@@ -459,14 +522,22 @@ async function cargarHorarios() {
   if (!servicioId) {
 
     listaHorarios.innerHTML =
-      '<div class="sin-resultados">Selecciona un servicio para ver sus horarios.</div>';
+      `
+        <div class="sin-resultados">
+          Selecciona un servicio para ver sus horarios.
+        </div>
+      `;
 
     return;
   }
 
 
   listaHorarios.innerHTML =
-    '<div class="cargando">Cargando horarios...</div>';
+    `
+      <div class="cargando">
+        Cargando horarios...
+      </div>
+    `;
 
 
   const {
@@ -510,7 +581,11 @@ async function cargarHorarios() {
     console.error(error);
 
     listaHorarios.innerHTML =
-      '<div class="sin-resultados">No fue posible cargar los horarios.</div>';
+      `
+        <div class="sin-resultados">
+          No fue posible cargar los horarios.
+        </div>
+      `;
 
     return;
   }
@@ -522,89 +597,259 @@ async function cargarHorarios() {
   ) {
 
     listaHorarios.innerHTML =
-      '<div class="sin-resultados">Todavía no hay horarios configurados para este servicio.</div>';
+      `
+        <div class="sin-resultados">
+          Todavía no hay horarios configurados para este servicio.
+        </div>
+      `;
 
     return;
   }
 
 
-  listaHorarios.innerHTML = "";
+  /*
+    AGRUPAMOS POR DÍA
+  */
+
+  const horariosPorDia = {};
 
 
   horarios.forEach(
     horario => {
 
-      const tarjeta =
-        document.createElement(
-          "div"
-        );
+      if (
+        !horariosPorDia[
+          horario.dia_semana
+        ]
+      ) {
+
+        horariosPorDia[
+          horario.dia_semana
+        ] = [];
+
+      }
 
 
-      tarjeta.className =
-        "servicio-card";
-
-
-      tarjeta.innerHTML = `
-
-        <div class="servicio-nombre">
-          ${nombreDia(horario.dia_semana)}
-        </div>
-
-        <div class="servicio-descripcion">
-          ${formatearHora(horario.hora_inicio)}
-          -
-          ${formatearHora(horario.hora_fin)}
-        </div>
-
-        <div
-          class="servicio-estado ${
-            horario.activo
-              ? "activo"
-              : "inactivo"
-          }"
-        >
-          ${
-            horario.activo
-              ? "Activo"
-              : "Inactivo"
-          }
-        </div>
-
-        <div class="servicio-acciones">
-
-          <button
-            type="button"
-            class="btn-activar"
-          >
-            ${
-              horario.activo
-                ? "Desactivar"
-                : "Activar"
-            }
-          </button>
-
-        </div>
-
-      `;
-
-
-      tarjeta
-        .querySelector(".btn-activar")
-        .addEventListener(
-          "click",
-          () =>
-            cambiarEstadoHorario(
-              horario
-            )
-        );
-
-
-      listaHorarios.appendChild(
-        tarjeta
+      horariosPorDia[
+        horario.dia_semana
+      ].push(
+        horario
       );
 
     }
   );
+
+
+  listaHorarios.innerHTML = "";
+
+
+  /*
+    UNA TARJETA POR DÍA
+  */
+
+  Object
+    .keys(horariosPorDia)
+    .sort(
+      (a, b) =>
+        Number(a) -
+        Number(b)
+    )
+    .forEach(
+      dia => {
+
+        const tarjeta =
+          document.createElement(
+            "div"
+          );
+
+        tarjeta.className =
+          "servicio-card horario-dia-card";
+
+
+        const titulo =
+          document.createElement(
+            "div"
+          );
+
+        titulo.className =
+          "servicio-nombre";
+
+        titulo.textContent =
+          nombreDia(
+            Number(dia)
+          );
+
+
+        const contenedorHoras =
+          document.createElement(
+            "div"
+          );
+
+        contenedorHoras.className =
+          "horas-grid";
+
+
+        /*
+          MOSTRAR HORAS ACTIVAS
+        */
+
+        horariosPorDia[dia]
+          .filter(
+            horario =>
+              horario.activo
+          )
+          .forEach(
+            horario => {
+
+              const horas =
+                generarHoras(
+                  horario.hora_inicio,
+                  horario.hora_fin
+                );
+
+
+              horas.forEach(
+                hora => {
+
+                  const chip =
+                    document.createElement(
+                      "span"
+                    );
+
+                  chip.className =
+                    "hora-chip";
+
+                  chip.textContent =
+                    hora;
+
+                  contenedorHoras
+                    .appendChild(
+                      chip
+                    );
+
+                }
+              );
+
+            }
+          );
+
+
+        if (
+          contenedorHoras
+            .children
+            .length === 0
+        ) {
+
+          contenedorHoras.innerHTML =
+            `
+              <span class="sin-resultados">
+                Sin horarios activos
+              </span>
+            `;
+
+        }
+
+
+        /*
+          BLOQUES CONFIGURADOS
+          PARA ACTIVAR / DESACTIVAR
+        */
+
+        const bloques =
+          document.createElement(
+            "div"
+          );
+
+        bloques.className =
+          "horarios-bloques";
+
+
+        horariosPorDia[dia]
+          .forEach(
+            horario => {
+
+              const bloque =
+                document.createElement(
+                  "div"
+                );
+
+              bloque.className =
+                "horario-bloque";
+
+
+              const texto =
+                document.createElement(
+                  "span"
+                );
+
+              texto.textContent =
+                `${formatearHora(
+                  horario.hora_inicio
+                )} - ${formatearHora(
+                  horario.hora_fin
+                )}`;
+
+
+              const boton =
+                document.createElement(
+                  "button"
+                );
+
+              boton.type =
+                "button";
+
+              boton.className =
+                "btn-activar";
+
+              boton.textContent =
+                horario.activo
+                  ? "Desactivar"
+                  : "Activar";
+
+
+              boton.addEventListener(
+                "click",
+                () =>
+                  cambiarEstadoHorario(
+                    horario
+                  )
+              );
+
+
+              bloque.appendChild(
+                texto
+              );
+
+              bloque.appendChild(
+                boton
+              );
+
+              bloques.appendChild(
+                bloque
+              );
+
+            }
+          );
+
+
+        tarjeta.appendChild(
+          titulo
+        );
+
+        tarjeta.appendChild(
+          contenedorHoras
+        );
+
+        tarjeta.appendChild(
+          bloques
+        );
+
+        listaHorarios.appendChild(
+          tarjeta
+        );
+
+      }
+    );
 }
 
 
@@ -620,20 +865,16 @@ async function guardarHorario() {
   const profesionalId =
     profesionalHorario.value;
 
-
   const servicioId =
     servicioHorario.value;
-
 
   const dia =
     Number(
       diaHorario.value
     );
 
-
   const inicio =
     horaInicio.value;
-
 
   const fin =
     horaFin.value;
@@ -667,12 +908,19 @@ async function guardarHorario() {
   }
 
 
+  /*
+    EVITAR HORARIOS CRUZADOS
+    DEL MISMO SERVICIO
+  */
+
   const {
     data: existentes,
     error: errorExistentes
   } = await db
     .from("horarios")
-    .select("id")
+    .select(
+      "id"
+    )
     .eq(
       "profesional_id",
       profesionalId
@@ -726,6 +974,10 @@ async function guardarHorario() {
   }
 
 
+  /*
+    GUARDAR
+  */
+
   const {
     error
   } = await db
@@ -771,7 +1023,9 @@ async function guardarHorario() {
 
 
   diaHorario.value = "";
+
   horaInicio.value = "";
+
   horaFin.value = "";
 
 
@@ -799,8 +1053,10 @@ async function cambiarEstadoHorario(
   } = await db
     .from("horarios")
     .update({
+
       activo:
         nuevoEstado
+
     })
     .eq(
       "id",
@@ -832,7 +1088,77 @@ async function cambiarEstadoHorario(
 
 
 /* =========================
-   FUNCIONES AUXILIARES
+   GENERAR HORAS
+========================= */
+
+function generarHoras(
+  horaInicio,
+  horaFin
+) {
+
+  const resultado = [];
+
+
+  const [
+    inicioHora,
+    inicioMinuto
+  ] =
+    horaInicio
+      .slice(0, 5)
+      .split(":")
+      .map(Number);
+
+
+  const [
+    finHora,
+    finMinuto
+  ] =
+    horaFin
+      .slice(0, 5)
+      .split(":")
+      .map(Number);
+
+
+  let actual =
+    inicioHora * 60 +
+    inicioMinuto;
+
+
+  const final =
+    finHora * 60 +
+    finMinuto;
+
+
+  while (
+    actual < final
+  ) {
+
+    const horas =
+      Math.floor(
+        actual / 60
+      );
+
+    const minutos =
+      actual % 60;
+
+
+    resultado.push(
+      `${String(horas)
+        .padStart(2, "0")}:${String(minutos)
+        .padStart(2, "0")}`
+    );
+
+
+    actual += 60;
+  }
+
+
+  return resultado;
+}
+
+
+/* =========================
+   NOMBRE DEL DÍA
 ========================= */
 
 function nombreDia(
@@ -840,19 +1166,34 @@ function nombreDia(
 ) {
 
   const dias = {
+
     1: "Lunes",
+
     2: "Martes",
+
     3: "Miércoles",
+
     4: "Jueves",
+
     5: "Viernes",
+
     6: "Sábado",
+
     7: "Domingo"
+
   };
 
 
-  return dias[numero] || "Día";
+  return (
+    dias[numero] ||
+    "Día"
+  );
 }
 
+
+/* =========================
+   FORMATO DE HORA
+========================= */
 
 function formatearHora(
   hora
@@ -870,6 +1211,10 @@ function formatearHora(
 }
 
 
+/* =========================
+   CERRAR SESIÓN
+========================= */
+
 async function cerrarSesion() {
 
   await db.auth.signOut();
@@ -878,6 +1223,10 @@ async function cerrarSesion() {
     "panel.html";
 }
 
+
+/* =========================
+   MENSAJES
+========================= */
 
 function mostrarError(
   texto
@@ -905,21 +1254,10 @@ function mostrarExito(
 
 function ocultarMensaje() {
 
+  mensaje.textContent = "";
+
   mensaje.className =
     "mensaje oculto";
-}
-
-
-function escapar(
-  texto
-) {
-
-  return String(texto)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 
