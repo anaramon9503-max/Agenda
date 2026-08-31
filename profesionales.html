@@ -22,6 +22,7 @@
 
   <div class="tarjeta">
 
+    <!-- ENCABEZADO DEL NEGOCIO -->
     <div class="barra">
 
       <div class="negocio">
@@ -45,6 +46,7 @@
       <button
         id="btnVolver"
         class="cerrar"
+        type="button"
         style="width:100%; padding:15px; margin-bottom:10px;"
       >
         ← Volver a citas
@@ -53,6 +55,7 @@
       <button
         id="btnCerrar"
         class="cerrar"
+        type="button"
         style="width:100%; padding:15px;"
       >
         Cerrar sesión
@@ -61,6 +64,7 @@
     </div>
 
 
+    <!-- AGREGAR / EDITAR PROFESIONAL -->
     <div class="form-servicio">
 
       <h3 id="tituloFormularioProfesional">
@@ -102,6 +106,7 @@
     </div>
 
 
+    <!-- LISTA DE PROFESIONALES -->
     <h2>Mis profesionales</h2>
 
     <div
@@ -159,6 +164,56 @@
     </div>
 
 
+    <!-- CREAR ACCESO DEL PROFESIONAL -->
+    <div
+      id="seccionAccesoProfesional"
+      class="form-servicio oculto"
+      style="margin-top:20px;"
+    >
+
+      <h3>
+        Crear acceso para
+        <span id="nombreProfesionalAcceso"></span>
+      </h3>
+
+      <p style="font-size:14px; opacity:.75;">
+        Crea la cuenta con la que este profesional podrá iniciar sesión.
+      </p>
+
+      <input
+        type="email"
+        id="correoProfesionalAcceso"
+        placeholder="Correo del profesional"
+        autocomplete="email"
+      >
+
+      <input
+        type="password"
+        id="passwordProfesionalAcceso"
+        placeholder="Contraseña temporal"
+        autocomplete="new-password"
+      >
+
+      <button
+        type="button"
+        id="btnCrearAccesoProfesional"
+        class="btn-guardar"
+      >
+        Crear acceso
+      </button>
+
+      <button
+        type="button"
+        id="btnCerrarAccesoProfesional"
+        class="btn-cancelar-edicion"
+      >
+        Cerrar
+      </button>
+
+    </div>
+
+
+    <!-- MENSAJES -->
     <div
       id="mensaje"
       class="mensaje oculto"
@@ -169,7 +224,7 @@
 </div>
 
 
-<script src="profesionales.js?v=2"></script>
+<script src="profesionales.js?v=3"></script>
 
 </body>
 </html>
